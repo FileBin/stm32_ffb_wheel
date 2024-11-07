@@ -272,7 +272,8 @@
  * @li FAHRENHEIT(n) or F(e) - Fahrenheit ^ e
  * @li DEGREES(e) or DEG(e) - Degrees ^ e
  */
-#define HID_UNIT(...) HID_ELEM(0x6, GLOBAL, 4, HID_UNION_UNIT(__VA_ARGS__))
+#define HID_UNIT4(...) HID_ELEM(0x6, GLOBAL, 4, HID_UNION_UNIT(__VA_ARGS__))
+#define HID_UNIT(...) HID_ELEM(0x6, GLOBAL, 2, HID_UNION_UNIT(__VA_ARGS__))
 
 /*
 #define HID_UNITS_NM HID_UNIT(CM(1)), HID_UNIT_EXPONENT(-7)
@@ -298,15 +299,6 @@
  */
 
 #define HID_USAGE_UNDEFINED      1, 0x00
-
-
-/* Physical Device Usages */
-#define HID_USAGE_PID_STATE_REPORT 1, 0x92 
-#define HID_USAGE_DEVICE_PAUSED 1, 0x9F
-#define HID_USAGE_ACTUATORS_ENABLED 1, 0xA0
-#define HID_USAGE_SAFETY_SWITCH 1, 0xA4
-#define HID_USAGE_ACTUATOR_OVERRIDE_SWITCH 1, 0xA5
-#define HID_USAGE_ACTUATOR_POWER 1, 0xA6
 
 /* Generic Desktop Usages */
 #define HID_USAGE_POINTER        1, 0x01

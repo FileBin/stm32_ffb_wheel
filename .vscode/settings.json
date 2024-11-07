@@ -1,7 +1,7 @@
 {
-    "sonarlint.pathToCompileCommands": "${workspaceFolder}/compile_commands.json",
     "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
     "indentRainbow.ignoreErrorLanguages": [
         "c"
-    ]
+    ],
+    "sonarlint.pathToCompileCommands": "${workspaceFolder}/compile_commands.json"
 }
