@@ -7,5 +7,7 @@
     "files.associations": {
         "usbd_ioreq.h": "c",
         "ffb.h": "c",
+        "usbd_customhid.h": "c",
+        "stdint.h": "c"
     },
 }

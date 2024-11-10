@@ -10,6 +10,16 @@ uint8_t nextEffectId = 1;
 uint8_t devicePaused = 0;
 uint8_t deviceGain = 255;
 
+volatile PIDStateReport state = {
+    .id = PID_STATE_REPORT_ID,
+    .devicePaused = 0,
+    .actuatorsEnabled = 1,
+    .actuatorPower = 1,
+    .actuatorOverrideSwitch = 1,
+    .effectPlaying = 0,
+    .effectBlockIndex = 0,
+};
+
 volatile EffectState gEffectStates[MAX_EFFECTS + 1] = {0};
 PID_BlockLoadReport pidBlockLoad = {
     .id = PID_BLOCK_LOAD_REPORT_ID,

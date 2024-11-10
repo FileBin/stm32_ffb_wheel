@@ -3,6 +3,7 @@
 #include "usb_reports.h"
 #include "usbd_def.h"
 #include "usbd_ioreq.h"
+#include "usbd_customhid.h"
 
 #include "ffb.h"
 
@@ -47,5 +48,13 @@ uint8_t HID_SetReport(USBD_HandleTypeDef *pdev, uint16_t wValue) {
     return TRUE;
   }
   return FALSE;
+}
+
+extern USBD_HandleTypeDef hUsbDeviceFS;
+extern volatile PIDStateReport state;
+void HID_OutEvent(void) {
+  PIDStateReport copy = state;
+  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&copy,
+                             sizeof(PIDStateReport));
 }
 

@@ -166,9 +166,12 @@ static int8_t CUSTOM_HID_DeInit_FS(void)
   * @param  state: Event state
   * @retval USBD_OK if all operations are OK else USBD_FAIL
   */
+
+void HID_OutEvent(void);
 static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
 {
   /* USER CODE BEGIN 6 */
+  //HID_OutEvent();
   return (USBD_OK);
   /* USER CODE END 6 */
 }
