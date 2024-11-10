@@ -61,6 +61,8 @@
   * @{
   */
 
+#include "hid_descriptor.h"
+
 /*---------- -----------*/
 #define USBD_MAX_NUM_INTERFACES     1
 /*---------- -----------*/
@@ -74,7 +76,7 @@
 /*---------- -----------*/
 #define USBD_CUSTOMHID_OUTREPORT_BUF_SIZE     64
 /*---------- -----------*/
-#define USBD_CUSTOM_HID_REPORT_DESC_SIZE     991
+#define USBD_CUSTOM_HID_REPORT_DESC_SIZE     sizeof(CUSTOM_HID_ReportDesc_FS)
 /*---------- -----------*/
 #define CUSTOM_HID_FS_BINTERVAL     0x5
 

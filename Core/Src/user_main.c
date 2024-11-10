@@ -14,7 +14,7 @@ void process_usb(void);
 void user_main(void) {
   blink_led();
   process_usb();
-  HAL_Delay(50);
+  HAL_Delay(5);
 }
 
 GPIO_PinState g_prev_led_state = 0;
@@ -34,24 +34,17 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 uint32_t timer = 0; 
 
 void process_usb(void) {
-  USB_HID_Report report;
-  USB_InitHidReport(&report);
+  JoystickInputReport report;
+  JoystickInputReport_Init(&report);
 
   timer++;
 
-  report.axes[0] = (uint16_t)((timer*100) % 0x10000);
-  report.axes[1] = (uint16_t)((timer*300) % 0x10000);
-  report.axes[2] = (uint16_t)((timer*500) % 0x10000);
-  report.buttons = 1uL << (timer%32);
+  report.steering = (uint16_t)((timer*100) % 0x10000);
+  report.accelerator = (uint16_t)((timer*300) % 0x10000);
+  report.brake = (uint16_t)((timer*500) % 0x10000);
+  report.buttons = 1uL << ((timer/32)%32);
 
   USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&report,
-                             sizeof(USB_HID_Report));
+                             sizeof(JoystickInputReport));
 }
 
-void USB_InitHidReport(USB_HID_Report *hid_report) {
-  hid_report->id = USB_HID_REPORT_ID;
-  hid_report->axes[0] = AXIS_CENTER;
-  hid_report->axes[1] = AXIS_MIN;
-  hid_report->axes[2] = AXIS_MIN;
-  hid_report->buttons = 0x0;
-}

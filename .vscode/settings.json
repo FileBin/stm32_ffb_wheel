@@ -3,5 +3,9 @@
     "indentRainbow.ignoreErrorLanguages": [
         "c"
     ],
-    "sonarlint.pathToCompileCommands": "${workspaceFolder}/compile_commands.json"
+    "sonarlint.pathToCompileCommands": "${workspaceFolder}/compile_commands.json",
+    "files.associations": {
+        "usbd_ioreq.h": "c",
+        "ffb.h": "c",
+    },
 }
