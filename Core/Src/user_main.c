@@ -45,12 +45,11 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 
 ADC_ChannelConfTypeDef sConfig = {
     .Rank = ADC_REGULAR_RANK_1,
-    .SamplingTime = ADC_SAMPLETIME_239CYCLES_5,
+    .SamplingTime = ADC_SAMPLETIME_55CYCLES_5,
 };
 
 uint8_t readAnalog(ADC_HandleTypeDef *hadc, uint32_t channel, uint32_t *out)
 {
-
   sConfig.Channel = channel;
 
   if (HAL_ADC_ConfigChannel(hadc, &sConfig) != HAL_OK)
@@ -60,30 +59,29 @@ uint8_t readAnalog(ADC_HandleTypeDef *hadc, uint32_t channel, uint32_t *out)
 
   HAL_ADC_Start(hadc);
 
-  if (HAL_ADC_PollForConversion(hadc, 10) != HAL_OK)
+  uint8_t result = (HAL_ADC_PollForConversion(hadc, 10) == HAL_OK);
+
+  if (result)
   {
-    return FALSE;
+    (*out) = HAL_ADC_GetValue(hadc);
   }
-  (*out) = HAL_ADC_GetValue(hadc);
 
   HAL_ADC_Stop(hadc);
 
-  return TRUE;
+  return result;
 }
 
 #define TRUNC_AXIS(x) _MAX2(_MIN2(x, 1.f), 0.f)
 #define TRUNC_AXIS_S(x) _MAX2(_MIN2(x, .5f), -.5f)
 
 #define AXIS_TO_INT16(x) (TRUNC_AXIS(x) * 0xffff)
-#define AXIS_TO_UINT16(x) (TRUNC_AXIS_S(x - 0.5f) * 0xffff)
+#define AXIS_TO_UINT16(x) (TRUNC_AXIS(x) * 0x7fff)
 #define ANALOG_TO_FLOAT(x) ((float)(x & 0x0fff) / (float)ANALOG_MAX)
 #define ANALOG_TO_UINT16(x) (uint16_t)((x & 0x0fff) * 0xffff / ANALOG_MAX)
 #define ANALOG_TO_INT16(x) (int16_t)(ANALOG_TO_UINT16(x) + 0x8000)
 
 char readAnalogAxes(JoystickInputReport *report)
 {
-  HAL_ADC_Start(&hadc1);
-
   uint32_t analog_val;
   float axis;
 
@@ -126,9 +124,12 @@ void process_usb(void)
   JoystickInputReport report;
   JoystickInputReport_Init(&report);
 
-  if (!readAnalogAxes(&report))
+  for (uint8_t i = 0;i<50;i++)
   {
-    Error_Handler();
+    if(readAnalogAxes(&report)) {
+      break;
+    }
+    HAL_Delay(100);
   }
 
   USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&report,

@@ -261,7 +261,7 @@ __ALIGN_BEGIN static uint8_t USBD_CUSTOM_HID_OtherSpeedCfgDesc[USB_CUSTOM_HID_CO
         0x00, /*iConfiguration: Index of string descriptor describing
 the configuration*/
         0xC0, /*bmAttributes: bus powered */
-        0x32, /*MaxPower 100 mA: this current is used for detecting Vbus*/
+        200, /*MaxPower 400 mA: this current is used for detecting Vbus*/
 
         /************** Descriptor of CUSTOM HID interface ****************/
         /* 09 */
