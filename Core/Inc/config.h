@@ -2,4 +2,4 @@
 #define FALSE 0
 
 #define MAX_EFFECTS 14
-#define MEMORY_POOL_SIZE 0x0fff
+#define MEMORY_POOL_SIZE 0xffff

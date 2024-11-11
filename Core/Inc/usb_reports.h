@@ -48,7 +48,7 @@ void PIDStateReport_Init(PIDStateReport *report);
 // ...
 
 // Feature Reports
-#define CREATE_NEW_EFFECT_REPORT_ID 1
+#define CREATE_NEW_EFFECT_REPORT_ID 5
 
 typedef enum PID_EffectType
 {
@@ -73,7 +73,7 @@ HID_REPORT PID_CreateNewEffectReport
 }
 PID_CreateNewEffectReport;
 
-#define PID_BLOCK_LOAD_REPORT_ID 2
+#define PID_BLOCK_LOAD_REPORT_ID 6
 
 typedef enum PID_BlockLoadStatus
 {
@@ -91,7 +91,7 @@ HID_REPORT PID_BlockLoadReport
 }
 PID_BlockLoadReport;
 
-#define PID_POOL_FEATURE_REPORT_ID 3
+#define PID_POOL_FEATURE_REPORT_ID 7
 #define PID_DEVICE_MANAGED_POOL 1
 #define PID_SHARED_PARAMETER_BLOCKS 1
 
