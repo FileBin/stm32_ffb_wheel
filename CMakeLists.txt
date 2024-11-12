@@ -50,8 +50,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Core/Src/user_main.c
     Core/Src/usb_reports.c
-    Core/Src/ffb_report_handler.c
     Core/Src/usb_report_handler.c
+    Core/Src/ffb_engine.c
+    Core/Src/ffb_report_handler.c
 )
 
 # Add include paths

@@ -1,117 +1,186 @@
 #include "config.h"
 
-#include "ffb.h"
+#include "ffb_engine.h"
+
 #include <stdint.h>
-#include <string.h>
+#include <stdlib.h>
 
 #define SIZE_EFFECT sizeof(EffectState)
 
-uint8_t nextEffectId = 1;
-uint8_t devicePaused = 0;
-uint8_t deviceGain = 255;
+extern volatile EffectState *gEffectStates;
+extern volatile PID_BlockLoadReport pidBlockLoad;
+extern volatile PIDStateReport g_state;
+extern volatile uint8_t g_deviceGain;
 
-volatile PIDStateReport state = {
-    .id = PID_STATE_REPORT_ID,
-    .devicePaused = 0,
-    .actuatorsEnabled = 1,
-    .actuatorPower = 1,
-    .actuatorOverrideSwitch = 1,
-    .effectPlaying = 0,
-    .effectBlockIndex = 0,
-};
-
-volatile EffectState gEffectStates[MAX_EFFECTS + 1] = {0};
-PID_BlockLoadReport pidBlockLoad = {
-    .id = PID_BLOCK_LOAD_REPORT_ID,
-    .ramPoolAvailable = MEMORY_POOL_SIZE,
-    .effectBlockIndex = 1,
-    .blockLoadStatus = BLOCK_LOAD_SUCCESS,
-};
-
-uint8_t GetNextFreeEffect(void)
-{
-  if (nextEffectId >= MAX_EFFECTS)
-  {
-    return 0;
-  }
-
-  uint8_t id = nextEffectId;
-
-  nextEffectId++;
-
-  while (gEffectStates[nextEffectId].isAllocated)
-  {
-    if (nextEffectId >= MAX_EFFECTS)
-      break; // the last spot was taken
-    nextEffectId++;
-  }
-
-  gEffectStates[id].isAllocated = TRUE;
-  return id;
-}
-
-void AllocateEffect(uint8_t id)
-{
-  memset((void *)&gEffectStates[id], 0, sizeof(EffectState));
-  gEffectStates[id].isAllocated = TRUE;
-}
-
-void StartEffect(uint8_t id)
-{
-  if (id > MAX_EFFECTS)
-    return;
-
-  gEffectStates[id].isPlaying = TRUE;
-  gEffectStates[id].elapsedTime = 0;
-}
-
-void StopEffect(uint8_t id)
-{
-  if (id > MAX_EFFECTS)
-    return;
-  gEffectStates[id].isPlaying = FALSE;
-}
-
-void FreeEffect(uint8_t id)
-{
-  if (id > MAX_EFFECTS)
-    return;
-
-  gEffectStates[id].isAllocated = 0;
-  gEffectStates[id].isPlaying = 0;
-
-  if (id < nextEffectId)
-    nextEffectId = id;
-
-  pidBlockLoad.ramPoolAvailable += SIZE_EFFECT;
-}
-
-void FreeAllEffects(void)
-{
-  nextEffectId = 1;
-  memset(&gEffectStates, 0, sizeof(gEffectStates));
-  pidBlockLoad.ramPoolAvailable = MEMORY_POOL_SIZE;
-}
-
-const PID_BlockLoadReport *FFB_GetPidBlockLoad(void)
-{
+volatile const PID_BlockLoadReport *FFB_GetPidBlockLoad(void) {
   return &pidBlockLoad;
 }
 
-void FFB_OnCreateNewEffect(const PID_CreateNewEffectReport *report)
-{
+void FFB_OnCreateNewEffect(const PID_CreateNewEffectReport *report) {
   pidBlockLoad.effectBlockIndex = GetNextFreeEffect();
 
-  if (pidBlockLoad.effectBlockIndex == 0)
-  {
+  if (pidBlockLoad.effectBlockIndex == 0) {
     pidBlockLoad.blockLoadStatus = BLOCK_LOAD_FULL;
-  }
-  else
-  {
+  } else {
     pidBlockLoad.blockLoadStatus = BLOCK_LOAD_SUCCESS;
     pidBlockLoad.ramPoolAvailable -= SIZE_EFFECT;
 
-    volatile EffectState *effect = &gEffectStates[pidBlockLoad.effectBlockIndex];
+    volatile EffectState *effect =
+        &gEffectStates[pidBlockLoad.effectBlockIndex];
     effect->effectType = report->effectType;
+  }
+}
+
+void On_SetEffect(const PID_SetEffectReport *data) {
+  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+
+  effect->duration = data->duration;
+  effect->effectType = data->effectType;
+  effect->gain = data->gain;
+  effect->enableAxis = data->enableAxis;
+}
+
+void On_SetEnvelope(const PID_SetEnvelopeReport *data) {
+  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+
+  effect->envelopeData.attackLevel = (int16_t)abs(data->attackLevel);
+  effect->envelopeData.fadeLevel = (int16_t)abs(data->fadeLevel);
+  effect->envelopeData.attackTime = data->attackTime;
+  effect->envelopeData.fadeTime = data->fadeTime;
+}
+
+void On_SetConditionReport(const PID_SetConditionReport *data) {
+  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+
+  effect->forceData.conditional.cpOffset = data->cpOffset;
+  effect->forceData.conditional.positiveCoefficient = data->positiveCoefficient;
+  effect->forceData.conditional.negativeCoefficient = data->negativeCoefficient;
+  effect->forceData.conditional.positiveSaturation = data->positiveSaturation;
+  effect->forceData.conditional.negativeSaturation = data->negativeSaturation;
+  effect->forceData.conditional.deadBand = data->deadBand;
+}
+
+void On_SetPeriodic(const PID_SetPeriodicReport *data) {
+  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+
+  effect->forceData.magnitude = data->magnitude;
+  effect->forceData.offset = data->offset;
+  effect->forceData.periodic.period = data->period;
+}
+
+void On_SetConstantForce(const PID_SetConstantForceReport *data) {
+  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+  effect->forceData.magnitude = data->magnitude;
+}
+
+void On_SetRampForce(const PID_SetRampForceReport *data) {
+  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+  int32_t buf = data->rampEnd + data->rampStart;
+  effect->forceData.offset = (uint16_t)(buf >> 1);
+
+  buf = data->rampEnd - data->rampStart;
+  effect->forceData.magnitude = (uint16_t)(buf >> 1);
+}
+
+void On_EffectOperation(const PID_EffectOperationReport *data) {
+  switch (data->effectOperation) {
+  case EF_OP_EFFECT_START:
+    if (data->loopCount > 0)
+      gEffectStates[data->effectBlockIndex].duration *= data->loopCount;
+    if (data->loopCount == 0xFF)
+      gEffectStates[data->effectBlockIndex].duration = DURATION_INF;
+    StartEffect(data->effectBlockIndex);
+    return;
+
+  case EF_OP_EFFECT_START_SOLO:
+    StopAllEffects();
+    StartEffect(data->effectBlockIndex);
+    return;
+
+  case EF_OP_EFFECT_STOP:
+    StopEffect(data->effectBlockIndex);
+    return;
+  default:
+    return;
+  }
+}
+
+void On_BlockFree(const PID_BlockFreeReport *data) {
+  uint8_t eid = data->effectBlockIndex;
+
+  if (eid == 0xFF) {
+    FreeAllEffects();
+  } else {
+    FreeEffect(eid);
+  }
+}
+
+void On_DeviceControl(const PID_DeviceControlReport *data) {
+  switch (data->control) {
+  case DC_ENABLE_ACTUATORS:
+    g_state.actuatorsEnabled = TRUE;
+    return;
+  case DC_DISABLE_ACTUATORS:
+    g_state.actuatorsEnabled = FALSE;
+    return;
+  case DC_STOP_ALL_EFFECTS:
+    StopAllEffects();
+    return;
+  case DC_DEVICE_RESET:
+    FreeAllEffects();
+    return;
+  case DC_DEVICE_PAUSE:
+    g_state.devicePaused = 1;
+    return;
+  case DC_DEVICE_CONTINUE:
+    g_state.devicePaused = 0;
+    return;
+  default:
+    return;
+  }
+}
+
+void On_DeviceGain(const PID_DeviceGainReport *data) {
+  g_deviceGain = data->gain;
+}
+
+void FFB_OnUsbData(const uint8_t *buf, uint8_t len) {
+  if(len < 2)
+    return;
+
+  uint8_t report_id = buf[0];
+  switch (report_id) {
+  case SET_EFFECT_REPORT_ID:
+    On_SetEffect((const PID_SetEffectReport *)buf);
+    return;
+  case SET_ENVELOPE_REPORT_ID:
+    On_SetEnvelope((const PID_SetEnvelopeReport *)buf);
+    return;
+  case SET_CONDITION_REPORT_ID:
+    On_SetConditionReport((const PID_SetConditionReport *)buf);
+    return;
+  case SET_PERIODIC_REPORT_ID:
+    On_SetPeriodic((const PID_SetPeriodicReport *)buf);
+    return;
+  case SET_CONSTANT_FORCE_REPORT_ID:
+    On_SetConstantForce((const PID_SetConstantForceReport *)buf);
+    return;
+  case SET_RAMP_FORCE_REPORT_ID:
+    On_SetRampForce((const PID_SetRampForceReport *)buf);
+    return;
+  case EFFECT_OPERATION_REPORT_ID:
+    On_EffectOperation((const PID_EffectOperationReport *)buf);
+    return;
+  case DEVICE_BLOCK_FREE_REPORT_ID:
+    On_BlockFree((const PID_BlockFreeReport *)buf);
+    return;
+  case DEVICE_CONTROL_REPORT_ID:
+    On_DeviceControl((const PID_DeviceControlReport *)buf);
+    return;
+  case DEVICE_GAIN_REPORT_ID:
+    On_DeviceGain((const PID_DeviceGainReport *)buf);
+    return;
+  default:
+    return;
   }
 }

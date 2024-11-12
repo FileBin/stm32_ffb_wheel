@@ -22,7 +22,7 @@
 #include "usbd_custom_hid_if.h"
 
 /* USER CODE BEGIN INCLUDE */
-
+#include "usb_report_handler.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -117,7 +117,7 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 
 static int8_t CUSTOM_HID_Init_FS(void);
 static int8_t CUSTOM_HID_DeInit_FS(void);
-static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state);
+static int8_t CUSTOM_HID_OutEvent_FS(uint8_t* pbuf, uint8_t n);
 
 /**
   * @}
@@ -167,11 +167,10 @@ static int8_t CUSTOM_HID_DeInit_FS(void)
   * @retval USBD_OK if all operations are OK else USBD_FAIL
   */
 
-void HID_OutEvent(void);
-static int8_t CUSTOM_HID_OutEvent_FS(uint8_t event_idx, uint8_t state)
+static int8_t CUSTOM_HID_OutEvent_FS(uint8_t* pbuf, uint8_t n)
 {
   /* USER CODE BEGIN 6 */
-  //HID_OutEvent();
+  HID_OutEvent(pbuf, n);
   return (USBD_OK);
   /* USER CODE END 6 */
 }

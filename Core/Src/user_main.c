@@ -19,7 +19,7 @@ void user_main(void)
 {
   blink_led();
   process_usb();
-  HAL_Delay(5);
+  HAL_Delay(1);
 }
 
 GPIO_PinState g_prev_led_state = 0;
@@ -80,6 +80,8 @@ uint8_t readAnalog(ADC_HandleTypeDef *hadc, uint32_t channel, uint32_t *out)
 #define ANALOG_TO_UINT16(x) (uint16_t)((x & 0x0fff) * 0xffff / ANALOG_MAX)
 #define ANALOG_TO_INT16(x) (int16_t)(ANALOG_TO_UINT16(x) + 0x8000)
 
+#define APPLY_DEADZONES(x, start, end) (x-(start))*(1.f/(1.f - (start + end)))
+
 char readAnalogAxes(JoystickInputReport *report)
 {
   uint32_t analog_val;
@@ -99,8 +101,7 @@ char readAnalogAxes(JoystickInputReport *report)
 
   axis = ANALOG_TO_FLOAT(analog_val);
 
-  axis -= 0.1f;
-  axis *= 1.f / 0.9f;
+  axis = APPLY_DEADZONES(axis, .1f, .1f);
 
   report->accelerator = (uint16_t)AXIS_TO_UINT16(axis);
 
@@ -111,8 +112,7 @@ char readAnalogAxes(JoystickInputReport *report)
 
   axis = ANALOG_TO_FLOAT(analog_val);
 
-  axis -= 0.1f;
-  axis *= 1.f / 0.9f;
+  axis = APPLY_DEADZONES(axis, .1f, .1f);
 
   report->brake = (uint16_t)AXIS_TO_UINT16(axis);
 
@@ -124,12 +124,12 @@ void process_usb(void)
   JoystickInputReport report;
   JoystickInputReport_Init(&report);
 
-  for (uint8_t i = 0;i<50;i++)
+  for (uint16_t i = 0;i<500;i++)
   {
     if(readAnalogAxes(&report)) {
       break;
     }
-    HAL_Delay(100);
+    HAL_Delay(10);
   }
 
   USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&report,

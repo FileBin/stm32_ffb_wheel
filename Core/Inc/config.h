@@ -3,3 +3,5 @@
 
 #define MAX_EFFECTS 14
 #define MEMORY_POOL_SIZE 0x3fff
+
+#define DURATION_INF 0xffff

@@ -8,6 +8,9 @@
         "usbd_ioreq.h": "c",
         "ffb.h": "c",
         "usbd_customhid.h": "c",
-        "stdint.h": "c"
+        "stdint.h": "c",
+        "cstdint": "c",
+        "usbd_customhid_if_template.h": "c"
     },
+    "clangd.arguments": ["--query-driver=/usr/bin/arm-none-eabi-gcc"]
 }

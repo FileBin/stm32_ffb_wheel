@@ -1,5 +1,25 @@
 #include <stdint.h>
 
+typedef struct EnvelopeData {
+  int16_t attackLevel;
+  int16_t fadeLevel;
+  uint16_t fadeTime;
+  uint16_t attackTime;
+} EnvelopeData;
+
+typedef struct PeriodicForceData {
+  uint16_t period;
+} PeriodicForceData;
+
+typedef struct ConditionalForceData {
+  int16_t positiveCoefficient;
+  int16_t negativeCoefficient;
+  uint16_t positiveSaturation;
+  uint16_t negativeSaturation;
+  int16_t cpOffset;
+  uint16_t deadBand;
+} ConditionalForceData;
+
 typedef struct EffectState {
   struct {
     uint8_t isAllocated : 1;
@@ -7,33 +27,35 @@ typedef struct EffectState {
     uint8_t enableAxis : 1;
   };
 
-  uint8_t direction;
-
   uint8_t effectType;
   uint8_t gain;
 
-  uint16_t elapsedTime;
+  uint32_t startTime;
   uint16_t duration;
 
-  int16_t magnitude;
-
-  int16_t offset;
-  uint16_t period;
-
-  uint16_t attackLevel;
-  uint16_t fadeLevel;
-  uint16_t fadeTime;
-  uint16_t attackTime;
-
-  int16_t positiveCoefficient;
-  int16_t negativeCoefficient;
-  uint16_t positiveSaturation;
-  uint16_t negativeSaturation;
-  int16_t cpOffset;
-  uint16_t deadBand;
+  EnvelopeData envelopeData;
+  struct {
+    int16_t magnitude;
+    int16_t offset;
+    union {
+      PeriodicForceData periodic;
+      ConditionalForceData conditional;
+    };
+  } forceData;
 } EffectState;
+
+typedef struct EffectCalcData {
+  uint32_t time;
+  float fadeTimeC;
+  float attackTimeC;
+  float periodC;
+
+  EffectState effectState;
+} EffectCalcData;
 
 #include "usb_reports.h"
 
 void FFB_OnCreateNewEffect(const PID_CreateNewEffectReport *report);
-const PID_BlockLoadReport* FFB_GetPidBlockLoad(void);
+volatile const PID_BlockLoadReport *FFB_GetPidBlockLoad(void);
+
+void FFB_OnUsbData(const uint8_t *buf, uint8_t len);

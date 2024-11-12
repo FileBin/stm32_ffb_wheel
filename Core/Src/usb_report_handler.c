@@ -6,6 +6,7 @@
 #include "usbd_customhid.h"
 
 #include "ffb.h"
+#include <stdint.h>
 
 #define HID_REPORT_TYPE_INPUT 1
 #define HID_REPORT_TYPE_OUTPUT 2
@@ -55,11 +56,8 @@ uint8_t HID_SetReport(USBD_HandleTypeDef *pdev, uint16_t wValue)
   return FALSE;
 }
 
-extern USBD_HandleTypeDef hUsbDeviceFS;
-extern volatile PIDStateReport state;
-void HID_OutEvent(void)
+
+void HID_OutEvent(const uint8_t* pbuf, uint8_t n)
 {
-  PIDStateReport copy = state;
-  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&copy,
-                             sizeof(PIDStateReport));
+  FFB_OnUsbData(pbuf, n);
 }
