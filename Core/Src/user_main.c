@@ -1,12 +1,16 @@
 #include "config.h"
 
 #include "blink.h"
+#include "main.h"
+#include "stm32f103xb.h"
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_adc.h"
 #include "stm32f1xx_hal_gpio.h"
+#include "stm32f1xx_hal_tim.h"
 #include "usb_reports.h"
 #include "usbd_customhid.h"
 #include <stdint.h>
+#include <stdlib.h>
 
 #include "ffb_axis.h"
 #include "ffb_engine.h"
@@ -23,7 +27,40 @@ void user_main(void) {
   updateMotor();
 }
 
-void updateMotor(void) { int16_t force = FFBEngine_CalculateForce(); }
+extern TIM_HandleTypeDef htim2;
+void updateMotor(void) {
+  int16_t force = FFBEngine_CalculateForce();
+  int8_t motorDirection = 0;
+
+  if (force > 10) {
+    motorDirection = 1;
+  }
+
+  else if (force < -10) {
+    motorDirection = -1;
+  }
+
+  if (motorDirection > 0) {
+    HAL_GPIO_WritePin(MotorPositive_GPIO_Port, MotorPositive_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(MotorNegative_GPIO_Port, MotorNegative_Pin,
+                      GPIO_PIN_RESET);
+  } else if (motorDirection < 0) {
+    HAL_GPIO_WritePin(MotorNegative_GPIO_Port, MotorNegative_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(MotorPositive_GPIO_Port, MotorPositive_Pin,
+                      GPIO_PIN_RESET);
+  } else {
+    HAL_GPIO_WritePin(MotorNegative_GPIO_Port, MotorNegative_Pin,
+                      GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(MotorPositive_GPIO_Port, MotorPositive_Pin,
+                      GPIO_PIN_RESET);
+  }
+
+  if(motorDirection != 0) {
+    force = abs(force);
+    TIM2->CCR1 = force;
+    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+  }
+}
 
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
@@ -99,6 +136,19 @@ char readAnalogAxes(JoystickInputReport *report) {
 
   report->brake = (uint16_t)AXIS_TO_UINT16(axis);
 
+  if (!readAnalog(&hadc2, ADC_CHANNEL_3, &analog_val)) {
+    return FALSE;
+  }
+
+  axis = ANALOG_TO_FLOAT(analog_val);
+
+  if (axis > .8) {
+    report->buttons |= 1 >> 5;
+  }
+
+  if (axis < .2) {
+    report->buttons |= 1 >> 6;
+  }
   return TRUE;
 }
 

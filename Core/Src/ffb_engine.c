@@ -94,6 +94,36 @@ void StopAllEffects(void) {
     StopEffect(id);
 }
 
+void InitCalcData(EffectCalcData *data) {
+  switch (data->effect.effectType) {
+  case ET_RAMP:
+    data->periodC = 2.0 / data->effect.duration;
+    break;
+  case ET_SINE:
+    data->periodC = 65535.0 / data->effect.forceData.periodic.period;
+    break;
+  case ET_TRIANGLE:
+    data->periodC = 4.0 / data->effect.forceData.periodic.period;
+    break;
+  case ET_SAWTOOTH_UP:
+  case ET_SAWTOOTH_DOWN:
+    data->periodC = 2.0 / data->effect.forceData.periodic.period;
+    break;
+  default:
+    break;
+  }
+
+  EnvelopeData *envelope = &data->effect.envelopeData;
+
+  if (envelope->fadeTime || envelope->attackTime) {
+    if (envelope->fadeTime > data->effect.duration - envelope->attackTime)
+      envelope->fadeTime = data->effect.duration - envelope->attackTime;
+
+    data->fadeTimeC = 1.f / envelope->fadeTime;
+    data->attackTimeC = 1.f / envelope->attackTime;
+  }
+}
+
 int16_t FFBEngine_CalculateForce(void) {
   int32_t totalForce = 0;
   uint32_t time = HAL_GetTick();
@@ -114,6 +144,8 @@ int16_t FFBEngine_CalculateForce(void) {
       StopEffect(id);
       continue;
     }
+
+    InitCalcData(&data);
 
     switch (data.effect.effectType) {
     case ET_CONSTANT_FORCE:
