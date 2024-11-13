@@ -8,3 +8,4 @@ void FreeEffect(uint8_t id);
 void FreeAllEffects(void);
 void FreeAllEffects(void);
 void StopAllEffects(void);
+int16_t FFBEngine_CalculateForce(void);

@@ -1,40 +1,29 @@
 #include "config.h"
 
-#include "main.h"
+#include "blink.h"
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_adc.h"
 #include "stm32f1xx_hal_gpio.h"
 #include "usb_reports.h"
 #include "usbd_customhid.h"
 #include <stdint.h>
+
+#include "ffb_axis.h"
+#include "ffb_engine.h"
 #include "macro.h"
 
-#define BLINK_INTERVAL 1000
 #define USB_SEND_MIN_INTERVAL 10
 
-void blink_led(void);
 void process_usb(void);
+void updateMotor(void);
 
-void user_main(void)
-{
+void user_main(void) {
   blink_led();
   process_usb();
-  HAL_Delay(1);
+  updateMotor();
 }
 
-GPIO_PinState g_prev_led_state = 0;
-
-void blink_led(void)
-{
-  GPIO_PinState led_state =
-      (HAL_GetTick() % BLINK_INTERVAL) < (BLINK_INTERVAL / 2) ? GPIO_PIN_RESET
-                                                              : GPIO_PIN_SET;
-  if (led_state != g_prev_led_state)
-  {
-    HAL_GPIO_WritePin(board_led_GPIO_Port, board_led_Pin, led_state);
-    g_prev_led_state = led_state;
-  }
-}
+void updateMotor(void) { int16_t force = FFBEngine_CalculateForce(); }
 
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
@@ -48,12 +37,10 @@ ADC_ChannelConfTypeDef sConfig = {
     .SamplingTime = ADC_SAMPLETIME_55CYCLES_5,
 };
 
-uint8_t readAnalog(ADC_HandleTypeDef *hadc, uint32_t channel, uint32_t *out)
-{
+uint8_t readAnalog(ADC_HandleTypeDef *hadc, uint32_t channel, uint32_t *out) {
   sConfig.Channel = channel;
 
-  if (HAL_ADC_ConfigChannel(hadc, &sConfig) != HAL_OK)
-  {
+  if (HAL_ADC_ConfigChannel(hadc, &sConfig) != HAL_OK) {
     return FALSE;
   }
 
@@ -61,8 +48,7 @@ uint8_t readAnalog(ADC_HandleTypeDef *hadc, uint32_t channel, uint32_t *out)
 
   uint8_t result = (HAL_ADC_PollForConversion(hadc, 10) == HAL_OK);
 
-  if (result)
-  {
+  if (result) {
     (*out) = HAL_ADC_GetValue(hadc);
   }
 
@@ -80,22 +66,20 @@ uint8_t readAnalog(ADC_HandleTypeDef *hadc, uint32_t channel, uint32_t *out)
 #define ANALOG_TO_UINT16(x) (uint16_t)((x & 0x0fff) * 0xffff / ANALOG_MAX)
 #define ANALOG_TO_INT16(x) (int16_t)(ANALOG_TO_UINT16(x) + 0x8000)
 
-#define APPLY_DEADZONES(x, start, end) (x-(start))*(1.f/(1.f - (start + end)))
+#define APPLY_DEADZONES(x, start, end)                                         \
+  (x - (start)) * (1.f / (1.f - (start + end)))
 
-char readAnalogAxes(JoystickInputReport *report)
-{
+char readAnalogAxes(JoystickInputReport *report) {
   uint32_t analog_val;
   float axis;
 
-  if (!readAnalog(&hadc1, ADC_CHANNEL_0, &analog_val))
-  {
+  if (!readAnalog(&hadc1, ADC_CHANNEL_0, &analog_val)) {
     return FALSE;
   }
 
-  report->steering = ANALOG_TO_INT16(analog_val);
+  report->steering = FFB_Axis_Update(ANALOG_TO_INT16(analog_val));
 
-  if (!readAnalog(&hadc2, ADC_CHANNEL_1, &analog_val))
-  {
+  if (!readAnalog(&hadc2, ADC_CHANNEL_1, &analog_val)) {
     return FALSE;
   }
 
@@ -105,8 +89,7 @@ char readAnalogAxes(JoystickInputReport *report)
 
   report->accelerator = (uint16_t)AXIS_TO_UINT16(axis);
 
-  if (!readAnalog(&hadc2, ADC_CHANNEL_2, &analog_val))
-  {
+  if (!readAnalog(&hadc2, ADC_CHANNEL_2, &analog_val)) {
     return FALSE;
   }
 
@@ -119,19 +102,38 @@ char readAnalogAxes(JoystickInputReport *report)
   return TRUE;
 }
 
-void process_usb(void)
-{
+void sendReport(JoystickInputReport *report);
+
+void process_usb(void) {
   JoystickInputReport report;
   JoystickInputReport_Init(&report);
 
-  for (uint16_t i = 0;i<500;i++)
-  {
-    if(readAnalogAxes(&report)) {
+  for (uint16_t i = 0; i < 500; i++) {
+    if (readAnalogAxes(&report)) {
       break;
     }
     HAL_Delay(10);
   }
 
-  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)&report,
+  sendReport(&report);
+}
+
+uint32_t USB_lastTime = 0;
+#define USB_FREQ_MS 10
+
+void sendReport(JoystickInputReport *report) {
+  uint32_t prevTime = USB_lastTime;
+  uint32_t time = HAL_GetTick();
+
+  if (time < prevTime) {
+    USB_lastTime = time;
+    return;
+  }
+
+  if (time < prevTime + USB_FREQ_MS) {
+    return;
+  }
+
+  USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, (uint8_t *)report,
                              sizeof(JoystickInputReport));
 }

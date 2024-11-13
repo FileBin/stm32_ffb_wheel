@@ -49,9 +49,14 @@ target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Core/Src/user_main.c
+    Core/Src/blink.c
+    Core/Src/util.c
+    Core/Src/trig.c
     Core/Src/usb_reports.c
     Core/Src/usb_report_handler.c
     Core/Src/ffb_engine.c
+    Core/Src/ffb_forces.c
+    Core/Src/ffb_axis.c
     Core/Src/ffb_report_handler.c
 )
 

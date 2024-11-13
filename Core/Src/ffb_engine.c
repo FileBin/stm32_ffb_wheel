@@ -1,9 +1,12 @@
 #include "config.h"
 
-#include "ffb.h"
+#include "ffb_forces.h"
 #include "stm32f1xx_hal.h"
 
+#include <stdint.h>
 #include <string.h>
+
+#include "util.h"
 
 #define SIZE_EFFECT sizeof(EffectState)
 
@@ -91,29 +94,64 @@ void StopAllEffects(void) {
     StopEffect(id);
 }
 
-int16_t FFBEngine_CalculateForce() {
+int16_t FFBEngine_CalculateForce(void) {
   int32_t totalForce = 0;
   uint32_t time = HAL_GetTick();
 
   for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
-    volatile EffectState *effect = &gEffectStates[id];
+    EffectCalcData data = {
+        .effect = gEffectStates[id],
+    };
     int32_t tmpForce = 0;
 
-    if (!effect->isAllocated || !effect->isPlaying)
+    if (!data.effect.isAllocated || !data.effect.isPlaying)
       continue;
 
-    int32_t elapsed = time - effect->startTime;
-    if (effect->duration != DURATION_INF && elapsed > effect->duration) {
+    data.elapsed = time - data.effect.startTime;
+
+    if (data.effect.duration != DURATION_INF &&
+        data.elapsed > data.effect.duration) {
       StopEffect(id);
       continue;
     }
 
-    switch (effect->effectType) {
+    switch (data.effect.effectType) {
     case ET_CONSTANT_FORCE:
-    
+      FFB_ConstantForce(&data);
+      break;
+    case ET_SQUARE:
+    case ET_SINE:
+    case ET_TRIANGLE:
+    case ET_SAWTOOTH_DOWN:
+    case ET_SAWTOOTH_UP:
+      data.periodTime = data.elapsed % data.effect.forceData.periodic.period;
+      FFB_PeriodicForce(&data);
+      break;
+    case ET_RAMP:
+      FFB_RampForce(&data);
+      break;
+    case ET_SPRING:
+      FFB_SpringForce(&data);
+      break;
+    case ET_DAMPER:
+      FFB_DamperForce(&data);
+      break;
+    case ET_INERTIA:
+      FFB_InertiaForce(&data);
+      break;
+    case ET_FRICTION:
+      FFB_FrictionForce(&data);
+      break;
+    default:
       break;
     }
+
+    tmpForce = (tmpForce * (data.effect.gain + 1)) >> 8;
+
+    tmpForce = constrain(tmpForce, -16383, 16383);
+
+    totalForce += tmpForce;
   }
 
-  return 0;
+  return (int16_t)constrain(totalForce, -16383, 16383);
 }

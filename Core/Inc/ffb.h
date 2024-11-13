@@ -45,12 +45,13 @@ typedef struct EffectState {
 } EffectState;
 
 typedef struct EffectCalcData {
-  uint32_t time;
+  uint32_t elapsed;
+  int32_t periodTime;
   float fadeTimeC;
   float attackTimeC;
   float periodC;
 
-  EffectState effectState;
+  EffectState effect;
 } EffectCalcData;
 
 #include "usb_reports.h"
