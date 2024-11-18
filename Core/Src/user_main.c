@@ -56,8 +56,8 @@ void updateMotor(void) {
   }
 
   if(motorDirection != 0) {
-    force = abs(force);
-    TIM2->CCR1 = force;
+    force = (uint16_t)abs(force);
+    TIM2->CCR1 = force*2;
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   }
 }
@@ -114,8 +114,11 @@ char readAnalogAxes(JoystickInputReport *report) {
   if (!readAnalog(&hadc1, ADC_CHANNEL_0, &analog_val)) {
     return FALSE;
   }
-
-  report->steering = FFB_Axis_Update(ANALOG_TO_INT16(analog_val));
+  int32_t tmp = FFB_Axis_Update(ANALOG_TO_INT16(analog_val));
+  tmp *= 3;
+  tmp /= 2;
+  tmp = _CONSTRAIN(tmp, -32768, 32767);
+  report->steering = (uint16_t)tmp;
 
   if (!readAnalog(&hadc2, ADC_CHANNEL_1, &analog_val)) {
     return FALSE;
@@ -144,11 +147,11 @@ char readAnalogAxes(JoystickInputReport *report) {
   axis = ANALOG_TO_FLOAT(analog_val);
 
   if (axis > .75f) {
-    report->buttons |= 1 << 5;
+    report->buttons |= 1 << 4;
   }
 
   if (axis < .25f) {
-    report->buttons |= 1 << 6;
+    report->buttons |= 1 << 5;
   }
 
   return TRUE;
