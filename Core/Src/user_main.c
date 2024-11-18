@@ -108,6 +108,7 @@ uint8_t readAnalog(ADC_HandleTypeDef *hadc, uint32_t channel, uint32_t *out) {
 
 char readAnalogAxes(JoystickInputReport *report) {
   uint32_t analog_val;
+  report->buttons = 0;
   float axis;
 
   if (!readAnalog(&hadc1, ADC_CHANNEL_0, &analog_val)) {
@@ -142,13 +143,14 @@ char readAnalogAxes(JoystickInputReport *report) {
 
   axis = ANALOG_TO_FLOAT(analog_val);
 
-  if (axis > .8) {
-    report->buttons |= 1 >> 5;
+  if (axis > .75f) {
+    report->buttons |= 1 << 5;
   }
 
-  if (axis < .2) {
-    report->buttons |= 1 >> 6;
+  if (axis < .25f) {
+    report->buttons |= 1 << 6;
   }
+
   return TRUE;
 }
 

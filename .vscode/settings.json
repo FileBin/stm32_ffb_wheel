@@ -12,5 +12,5 @@
         "cstdint": "c",
         "usbd_customhid_if_template.h": "c"
     },
-    "clangd.arguments": ["--query-driver=$HOME/st/stm32cubeclt_1.16.0/GNU-tools-for-STM32/bin/arm-none-eabi-gcc"]
+    "clangd.arguments": ["--query-driver=/home/filebin/st/stm32cubeclt_1.16.0/GNU-tools-for-STM32/bin/arm-none-eabi-gcc"]
 }

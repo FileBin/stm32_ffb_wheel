@@ -67,6 +67,6 @@
 
 #define _ASSERT(x) ((1/(!!(x))) ? (x) : (x))
 
-#define _CONSTRAIN(x, a, b) _MAX2(_MIN2(x, a), b)
+#define _CONSTRAIN(x, a, b) _MIN2(_MAX2(x, a), b)
 
 #endif /* __MACRO_H__ */
