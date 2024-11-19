@@ -20,7 +20,7 @@
 #include "util.h"
 
 #define USB_SEND_MIN_INTERVAL 10
-#define MOTOR_MIN_FORCE 15
+#define MOTOR_MIN_FORCE 10000
 
 void process_usb(void);
 void updateMotor(void);
@@ -31,7 +31,7 @@ void user_main(void) {
   updateMotor();
 }
 
-extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
 void updateMotor(void) {
   EffectState spring = {
       .effectType = ET_SPRING,
@@ -84,16 +84,16 @@ void updateMotor(void) {
                       GPIO_PIN_RESET);
   }
 
-  // TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
 
-  // sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  // sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
-  // sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  // sConfigOC.Pulse = enable_motor ? constrain(abs(force) * 2, 0, 0xffff) : 0;
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.Pulse = enable_motor ? constrain(abs(force), 0, 16383) : 0;
   
-  // while (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
-  //   HAL_Delay(1);
-  // }
+  while (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfigOC, TIM_CHANNEL_4) != HAL_OK) {
+    HAL_Delay(1);
+  }
 }
 
 extern ADC_HandleTypeDef hadc1;
