@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include "blink.h"
+#include "ffb.h"
 #include "main.h"
 #include "stm32f103xb.h"
 #include "stm32f1xx_hal.h"
@@ -32,7 +33,37 @@ void user_main(void) {
 
 extern TIM_HandleTypeDef htim2;
 void updateMotor(void) {
-  int16_t force = FFBEngine_CalculateForce();
+  EffectState spring = {
+      .effectType = ET_SPRING,
+      .duration = DURATION_INF,
+      .enableAxis = 1,
+      .gain = 255,
+      .isAllocated = 1,
+      .isPlaying = 1,
+      .envelopeData =
+          {
+              .attackTime = 1,
+              .fadeTime = 1,
+              .attackLevel = 0x7fff,
+              .fadeLevel = 0x7fff,
+          },
+      .forceData =
+          {
+              .magnitude = 255,
+              .offset = 0,
+              .conditional =
+                  {
+                      .positiveCoefficient = 0x7fff,
+                      .negativeCoefficient = 0x7fff,
+                      .positiveSaturation = 0x7fff,
+                      .negativeSaturation = 0x7fff,
+                      .cpOffset = 0,
+                      .deadBand = 0,
+                  },
+          },
+  };
+  int16_t force =
+      (int16_t)FFBEngine_CalculateEffectForce(&spring, HAL_GetTick());
 
   char enable_motor = FALSE;
 
@@ -53,10 +84,16 @@ void updateMotor(void) {
                       GPIO_PIN_RESET);
   }
 
-  if(enable_motor) {
-    TIM2->CCR1 = constrain(abs(force)*2, MOTOR_MIN_FORCE*2, 0xffff);
-    HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
-  }
+  // TIM_OC_InitTypeDef sConfigOC = {0};
+
+  // sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  // sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  // sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  // sConfigOC.Pulse = enable_motor ? constrain(abs(force) * 2, 0, 0xffff) : 0;
+  
+  // while (HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1) != HAL_OK) {
+  //   HAL_Delay(1);
+  // }
 }
 
 extern ADC_HandleTypeDef hadc1;

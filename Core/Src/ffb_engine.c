@@ -102,14 +102,14 @@ void InitCalcData(EffectCalcData *data) {
     data->periodC = 2.0f / data->effect.duration;
     break;
   case ET_SINE:
-    data->periodC = 65535.0f / data->effect.forceData.periodic.period;
+    data->periodC = 65535.0f * 65535.0f / data->effect.forceData.periodic.period;
     break;
   case ET_TRIANGLE:
-    data->periodC = 4.0f / data->effect.forceData.periodic.period;
+    data->periodC = 4.0f * 65535.0f / data->effect.forceData.periodic.period;
     break;
   case ET_SAWTOOTH_UP:
   case ET_SAWTOOTH_DOWN:
-    data->periodC = 2.0f / data->effect.forceData.periodic.period;
+    data->periodC = 2.0f * 65535.0f / data->effect.forceData.periodic.period;
     break;
   default:
     break;

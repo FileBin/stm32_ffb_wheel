@@ -1,7 +1,7 @@
 #include "config.h"
 
-#include "ffb_forces.h"
 #include "ffb_axis.h"
+#include "ffb_forces.h"
 
 #include "trig.h"
 #include "util.h"
@@ -105,24 +105,32 @@ int32_t FFB_PeriodicForce(const EffectCalcData *data) {
 
 extern volatile FFB_Axis FFB_axis;
 
+int16_t GetAxisPosition(void) { return FFB_axis.position >> 1; }
+
+int16_t GetAxisVelocity(void) { return FFB_axis.velocity; }
+
+int16_t GetAxisAcceleration(void) { return FFB_axis.acceleration; }
+
 int32_t FFB_SpringForce(const EffectCalcData *data) {
   int32_t tempForce;
 
   const ConditionalForceData *cond = &data->effect.forceData.conditional;
 
-  int32_t position = FFB_axis.position >> 1;
+  int32_t position = GetAxisPosition();
 
-  if (position < (cond->cpOffset - (int16_t)cond->deadBand)) {
-    tempForce = ((position - (cond->cpOffset - (int32_t)cond->deadBand)) *
+  uint16_t deadBand = FFB_DEAD_ZONE + cond->deadBand;
+
+  if (position < (cond->cpOffset - deadBand)) {
+    tempForce = ((position - ((int32_t)cond->cpOffset - deadBand)) *
                  cond->negativeCoefficient) >>
-                14;
-    tempForce = constrain(tempForce, -(int16_t)cond->negativeSaturation,
+                8;
+    tempForce = constrain(tempForce, -cond->negativeSaturation,
                           cond->negativeSaturation);
-  } else if (position > (cond->cpOffset + (int16_t)cond->deadBand)) {
-    tempForce = ((position - (cond->cpOffset + (int32_t)cond->deadBand)) *
+  } else if (position > (cond->cpOffset + deadBand)) {
+    tempForce = ((position - ((int32_t)cond->cpOffset + deadBand)) *
                  cond->positiveCoefficient) >>
-                14;
-    tempForce = constrain(tempForce, -(int16_t)cond->positiveSaturation,
+                8;
+    tempForce = constrain(tempForce, -cond->positiveSaturation,
                           cond->positiveSaturation);
   } else
     return 0;
@@ -130,12 +138,12 @@ int32_t FFB_SpringForce(const EffectCalcData *data) {
   return tempForce;
 }
 
-float maxVelocityDamperC = 1.f;
+#define MAX_VELOCITY_DAMPER_C 1
 
 int32_t FFB_DamperForce(const EffectCalcData *data) {
   int32_t tempForce;
 
-  int32_t velocity = velocity * maxVelocityDamperC;
+  int32_t velocity = GetAxisVelocity() * MAX_VELOCITY_DAMPER_C;
   const ConditionalForceData *cond = &data->effect.forceData.conditional;
 
   if (velocity < (cond->cpOffset - (int16_t)cond->deadBand)) {
@@ -156,7 +164,7 @@ int32_t FFB_DamperForce(const EffectCalcData *data) {
   return tempForce;
 }
 
-float maxAccelerationInertiaC = 1.f;
+#define MAX_ACCELERATION_INERTIA_C 1
 
 int32_t FFB_InertiaForce(const EffectCalcData *data) {
   int32_t tempForce;
@@ -166,7 +174,7 @@ int32_t FFB_InertiaForce(const EffectCalcData *data) {
   if (sign(FFB_axis.acceleration) == sign(FFB_axis.velocity))
     return 0;
 
-  int16_t acceleration = FFB_axis.acceleration * maxAccelerationInertiaC;
+  int16_t acceleration = GetAxisAcceleration() * MAX_ACCELERATION_INERTIA_C;
 
   if (acceleration < (cond->cpOffset - (int16_t)cond->deadBand)) {
     tempForce = ((acceleration - (cond->cpOffset - (int32_t)cond->deadBand)) *
@@ -191,18 +199,18 @@ int32_t FFB_InertiaForce(const EffectCalcData *data) {
   return tempForce;
 }
 
-float maxVelocityFrictionC = 1.f;
+#define MAX_VELOCITY_FRICTION_C 1
 
 int32_t FFB_FrictionForce(const EffectCalcData *data) {
 
   const ConditionalForceData *cond = &data->effect.forceData.conditional;
 
-  int32_t velocity = velocity * maxVelocityFrictionC;
+  int32_t velocity = GetAxisVelocity() * MAX_VELOCITY_FRICTION_C;
   if (velocity == 0)
     return 0;
 
-
-  int32_t coefficient, tVelocity;
+  int32_t coefficient;
+  int32_t tVelocity;
 
   if (velocity > 0) {
     coefficient = cond->positiveCoefficient;
