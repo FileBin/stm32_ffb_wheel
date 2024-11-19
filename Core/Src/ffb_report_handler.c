@@ -16,7 +16,7 @@ volatile const PID_BlockLoadReport *FFB_GetPidBlockLoad(void) {
   return &pidBlockLoad;
 }
 
-void FFB_OnCreateNewEffect(const PID_CreateNewEffectReport *report) {
+void FFB_OnCreateNewEffect(void) {
   pidBlockLoad.effectBlockIndex = GetNextFreeEffect();
 
   if (pidBlockLoad.effectBlockIndex == 0) {
@@ -24,10 +24,6 @@ void FFB_OnCreateNewEffect(const PID_CreateNewEffectReport *report) {
   } else {
     pidBlockLoad.blockLoadStatus = BLOCK_LOAD_SUCCESS;
     pidBlockLoad.ramPoolAvailable -= SIZE_EFFECT;
-
-    volatile EffectState *effect =
-        &gEffectStates[pidBlockLoad.effectBlockIndex];
-    effect->effectType = report->effectType;
   }
 }
 

@@ -33,37 +33,7 @@ void user_main(void) {
 
 extern TIM_HandleTypeDef htim3;
 void updateMotor(void) {
-  EffectState spring = {
-      .effectType = ET_SPRING,
-      .duration = DURATION_INF,
-      .enableAxis = 1,
-      .gain = 255,
-      .isAllocated = 1,
-      .isPlaying = 1,
-      .envelopeData =
-          {
-              .attackTime = 1,
-              .fadeTime = 1,
-              .attackLevel = 0x7fff,
-              .fadeLevel = 0x7fff,
-          },
-      .forceData =
-          {
-              .magnitude = 255,
-              .offset = 0,
-              .conditional =
-                  {
-                      .positiveCoefficient = 0x7fff,
-                      .negativeCoefficient = 0x7fff,
-                      .positiveSaturation = 0x7fff,
-                      .negativeSaturation = 0x7fff,
-                      .cpOffset = 0,
-                      .deadBand = 0,
-                  },
-          },
-  };
-  int16_t force =
-      (int16_t)FFBEngine_CalculateEffectForce(&spring, HAL_GetTick());
+  int32_t force = FFBEngine_CalculateForce();
 
   char enable_motor = FALSE;
 
@@ -128,8 +98,8 @@ uint8_t readAnalog(ADC_HandleTypeDef *hadc, uint32_t channel, uint32_t *out) {
   return result;
 }
 
-#define TRUNC_AXIS(x) constrain(x, 0.f, 1.f)
-#define TRUNC_AXIS_S(x) constrain(x, -.5f, .5f)
+#define TRUNC_AXIS(x) _CONSTRAIN(x, 0.f, 1.f)
+#define TRUNC_AXIS_S(x) _CONSTRAIN(x, -.5f, .5f)
 
 #define AXIS_TO_INT16(x) (TRUNC_AXIS(x) * 0xffff)
 #define AXIS_TO_UINT16(x) (TRUNC_AXIS(x) * 0x7fff)

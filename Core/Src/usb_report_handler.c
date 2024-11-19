@@ -38,16 +38,13 @@ uint8_t HID_GetReport(USBD_HandleTypeDef *pdev, uint16_t wValue) {
   return FALSE;
 }
 
-uint8_t HID_SetReport(USBD_HandleTypeDef *pdev, uint16_t wValue) {
+uint8_t HID_SetReport(uint16_t wValue) {
   uint8_t reportId = LOBYTE(wValue);
   uint8_t reportType = HIBYTE(wValue);
 
   if (reportType == HID_REPORT_TYPE_FEATURE &&
       reportId == CREATE_NEW_EFFECT_REPORT_ID) {
-    PID_CreateNewEffectReport report;
-    USBD_CtlPrepareRx(pdev, (uint8_t *)&report,
-                      sizeof(PID_CreateNewEffectReport));
-    FFB_OnCreateNewEffect(&report);
+    FFB_OnCreateNewEffect();
     return TRUE;
   }
   return FALSE;
