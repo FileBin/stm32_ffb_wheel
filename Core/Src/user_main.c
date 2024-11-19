@@ -54,9 +54,7 @@ void updateMotor(void) {
   }
 
   if(enable_motor) {
-    uint16_t aforce = (uint16_t)abs(force);
-    aforce = (uint16_t)constrain(aforce*2, MOTOR_MIN_FORCE, 0xffff);
-    TIM2->CCR1 = aforce*2;
+    TIM2->CCR1 = constrain(abs(force)*2, MOTOR_MIN_FORCE*2, 0xffff);
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   }
 }
@@ -93,8 +91,8 @@ uint8_t readAnalog(ADC_HandleTypeDef *hadc, uint32_t channel, uint32_t *out) {
   return result;
 }
 
-#define TRUNC_AXIS(x) _MAX2(_MIN2(x, 1.f), 0.f)
-#define TRUNC_AXIS_S(x) _MAX2(_MIN2(x, .5f), -.5f)
+#define TRUNC_AXIS(x) constrain(x, 0.f, 1.f)
+#define TRUNC_AXIS_S(x) constrain(x, -.5f, .5f)
 
 #define AXIS_TO_INT16(x) (TRUNC_AXIS(x) * 0xffff)
 #define AXIS_TO_UINT16(x) (TRUNC_AXIS(x) * 0x7fff)
@@ -116,7 +114,7 @@ char readAnalogAxes(JoystickInputReport *report) {
   int32_t tmp = FFB_Axis_Update(ANALOG_TO_INT16(analog_val));
   tmp *= 3;
   tmp /= 2;
-  tmp = _CONSTRAIN(tmp, -32768, 32767);
+  tmp = constrain(tmp, -32768, 32767);
   report->steering = (uint16_t)tmp;
 
   if (!readAnalog(&hadc2, ADC_CHANNEL_1, &analog_val)) {
