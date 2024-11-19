@@ -16,7 +16,10 @@
 #include "ffb_engine.h"
 #include "macro.h"
 
+#include "util.h"
+
 #define USB_SEND_MIN_INTERVAL 10
+#define MOTOR_MIN_FORCE 15
 
 void process_usb(void);
 void updateMotor(void);
@@ -30,21 +33,16 @@ void user_main(void) {
 extern TIM_HandleTypeDef htim2;
 void updateMotor(void) {
   int16_t force = FFBEngine_CalculateForce();
-  int8_t motorDirection = 0;
 
-  if (force > 10) {
-    motorDirection = 1;
-  }
+  char enable_motor = FALSE;
 
-  else if (force < -10) {
-    motorDirection = -1;
-  }
-
-  if (motorDirection > 0) {
+  if (force > MOTOR_MIN_FORCE) {
+    enable_motor = TRUE;
     HAL_GPIO_WritePin(MotorPositive_GPIO_Port, MotorPositive_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(MotorNegative_GPIO_Port, MotorNegative_Pin,
                       GPIO_PIN_RESET);
-  } else if (motorDirection < 0) {
+  } else if (force < -MOTOR_MIN_FORCE) {
+    enable_motor = TRUE;
     HAL_GPIO_WritePin(MotorNegative_GPIO_Port, MotorNegative_Pin, GPIO_PIN_SET);
     HAL_GPIO_WritePin(MotorPositive_GPIO_Port, MotorPositive_Pin,
                       GPIO_PIN_RESET);
@@ -55,9 +53,10 @@ void updateMotor(void) {
                       GPIO_PIN_RESET);
   }
 
-  if(motorDirection != 0) {
-    force = (uint16_t)abs(force);
-    TIM2->CCR1 = force*2;
+  if(enable_motor) {
+    uint16_t aforce = (uint16_t)abs(force);
+    aforce = (uint16_t)constrain(aforce*2, MOTOR_MIN_FORCE, 0xffff);
+    TIM2->CCR1 = aforce*2;
     HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   }
 }
