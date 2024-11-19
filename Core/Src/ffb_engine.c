@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include "ffb_engine.h"
 #include "ffb_forces.h"
 #include "stm32f1xx_hal.h"
 
@@ -7,6 +8,7 @@
 #include <string.h>
 
 #include "util.h"
+
 
 #define SIZE_EFFECT sizeof(EffectState)
 
@@ -97,17 +99,17 @@ void StopAllEffects(void) {
 void InitCalcData(EffectCalcData *data) {
   switch (data->effect.effectType) {
   case ET_RAMP:
-    data->periodC = 2.0 / data->effect.duration;
+    data->periodC = 2.0f / data->effect.duration;
     break;
   case ET_SINE:
-    data->periodC = 65535.0 / data->effect.forceData.periodic.period;
+    data->periodC = 65535.0f / data->effect.forceData.periodic.period;
     break;
   case ET_TRIANGLE:
-    data->periodC = 4.0 / data->effect.forceData.periodic.period;
+    data->periodC = 4.0f / data->effect.forceData.periodic.period;
     break;
   case ET_SAWTOOTH_UP:
   case ET_SAWTOOTH_DOWN:
-    data->periodC = 2.0 / data->effect.forceData.periodic.period;
+    data->periodC = 2.0f / data->effect.forceData.periodic.period;
     break;
   default:
     break;
@@ -129,61 +131,64 @@ int16_t FFBEngine_CalculateForce(void) {
   uint32_t time = HAL_GetTick();
 
   for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
-    EffectCalcData data = {
-        .effect = gEffectStates[id],
-    };
-    int32_t tmpForce = 0;
 
-    if (!data.effect.isAllocated || !data.effect.isPlaying)
-      continue;
-
-    data.elapsed = time - data.effect.startTime;
-
-    if (data.effect.duration != DURATION_INF &&
-        data.elapsed > data.effect.duration) {
-      StopEffect(id);
-      continue;
-    }
-
-    InitCalcData(&data);
-
-    switch (data.effect.effectType) {
-    case ET_CONSTANT_FORCE:
-      tmpForce = FFB_ConstantForce(&data);
-      break;
-    case ET_SQUARE:
-    case ET_SINE:
-    case ET_TRIANGLE:
-    case ET_SAWTOOTH_DOWN:
-    case ET_SAWTOOTH_UP:
-      data.periodTime = data.elapsed % data.effect.forceData.periodic.period;
-      tmpForce = FFB_PeriodicForce(&data);
-      break;
-    case ET_RAMP:
-      tmpForce = FFB_RampForce(&data);
-      break;
-    case ET_SPRING:
-      tmpForce = FFB_SpringForce(&data);
-      break;
-    case ET_DAMPER:
-      tmpForce = FFB_DamperForce(&data);
-      break;
-    case ET_INERTIA:
-      tmpForce = FFB_InertiaForce(&data);
-      break;
-    case ET_FRICTION:
-      tmpForce = FFB_FrictionForce(&data);
-      break;
-    default:
-      break;
-    }
-
-    tmpForce = (tmpForce * (data.effect.gain + 1)) >> 8;
-
-    tmpForce = constrain(tmpForce, -16383, 16383);
-
-    totalForce += tmpForce;
+    totalForce += FFBEngine_CalculateEffectForce(&gEffectStates[id], time);
   }
 
   return (int16_t)constrain(totalForce, -16383, 16383);
+}
+
+int32_t FFBEngine_CalculateEffectForce(volatile const EffectState *effectState, uint32_t time) {
+  EffectCalcData data = {
+      .effect = *effectState,
+  };
+  int32_t tmpForce = 0;
+
+  if (!data.effect.isAllocated || !data.effect.isPlaying)
+    return 0;
+
+  data.elapsed = time - data.effect.startTime;
+
+  if (data.effect.duration != DURATION_INF &&
+      data.elapsed > data.effect.duration) {
+    data.effect.isPlaying = FALSE;
+    return 0;
+  }
+
+  InitCalcData(&data);
+
+  switch (data.effect.effectType) {
+  case ET_CONSTANT_FORCE:
+    tmpForce = FFB_ConstantForce(&data);
+    break;
+  case ET_SQUARE:
+  case ET_SINE:
+  case ET_TRIANGLE:
+  case ET_SAWTOOTH_DOWN:
+  case ET_SAWTOOTH_UP:
+    data.periodTime = data.elapsed % data.effect.forceData.periodic.period;
+    tmpForce = FFB_PeriodicForce(&data);
+    break;
+  case ET_RAMP:
+    tmpForce = FFB_RampForce(&data);
+    break;
+  case ET_SPRING:
+    tmpForce = FFB_SpringForce(&data);
+    break;
+  case ET_DAMPER:
+    tmpForce = FFB_DamperForce(&data);
+    break;
+  case ET_INERTIA:
+    tmpForce = FFB_InertiaForce(&data);
+    break;
+  case ET_FRICTION:
+    tmpForce = FFB_FrictionForce(&data);
+    break;
+  default:
+    break;
+  }
+
+  tmpForce = (tmpForce * (data.effect.gain + 1)) >> 8;
+
+  return constrain(tmpForce, -16383, 16383);
 }

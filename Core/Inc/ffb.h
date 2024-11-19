@@ -1,4 +1,9 @@
+#ifndef INCLUDE_FFB_H
+#define INCLUDE_FFB_H
+
 #include <stdint.h>
+#include "usb_reports.h"
+
 
 typedef struct EnvelopeData {
   int16_t attackLevel;
@@ -54,9 +59,9 @@ typedef struct EffectCalcData {
   EffectState effect;
 } EffectCalcData;
 
-#include "usb_reports.h"
-
 void FFB_OnCreateNewEffect(const PID_CreateNewEffectReport *report);
 volatile const PID_BlockLoadReport *FFB_GetPidBlockLoad(void);
 
 void FFB_OnUsbData(const uint8_t *buf, uint8_t len);
+
+#endif
