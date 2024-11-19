@@ -149,7 +149,7 @@ int16_t FFBEngine_CalculateForce(void) {
 
     switch (data.effect.effectType) {
     case ET_CONSTANT_FORCE:
-      FFB_ConstantForce(&data);
+      tmpForce = FFB_ConstantForce(&data);
       break;
     case ET_SQUARE:
     case ET_SINE:
@@ -157,22 +157,22 @@ int16_t FFBEngine_CalculateForce(void) {
     case ET_SAWTOOTH_DOWN:
     case ET_SAWTOOTH_UP:
       data.periodTime = data.elapsed % data.effect.forceData.periodic.period;
-      FFB_PeriodicForce(&data);
+      tmpForce = FFB_PeriodicForce(&data);
       break;
     case ET_RAMP:
-      FFB_RampForce(&data);
+      tmpForce = FFB_RampForce(&data);
       break;
     case ET_SPRING:
-      FFB_SpringForce(&data);
+      tmpForce = FFB_SpringForce(&data);
       break;
     case ET_DAMPER:
-      FFB_DamperForce(&data);
+      tmpForce = FFB_DamperForce(&data);
       break;
     case ET_INERTIA:
-      FFB_InertiaForce(&data);
+      tmpForce = FFB_InertiaForce(&data);
       break;
     case ET_FRICTION:
-      FFB_FrictionForce(&data);
+      tmpForce = FFB_FrictionForce(&data);
       break;
     default:
       break;
