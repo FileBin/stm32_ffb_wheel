@@ -34,8 +34,10 @@ volatile PID_BlockLoadReport pidBlockLoad = {
 };
 
 volatile EffectState gEffectStates[MAX_EFFECTS] = {0};
+EffectState g_et_null;
 
 volatile EffectState *GetEffectById(uint8_t id) {
+  VALIDATE_ID(id) return &g_et_null;
   return &gEffectStates[id - 1];
 }
 
@@ -88,7 +90,8 @@ void FreeEffect(uint8_t id) {
 
   volatile EffectState *effect = GetEffectById(id);
 
-  memset((void *)effect, 0, SIZE_EFFECT);
+  effect->isPlaying = FALSE;
+  effect->isAllocated = FALSE;
 
   if (id < nextEffectId)
     nextEffectId = id;
@@ -141,6 +144,9 @@ int16_t FFBEngine_CalculateForce(void) {
   int32_t totalForce = 0;
   uint32_t time = HAL_GetTick();
 
+  if(g_state.devicePaused)
+    return 0;
+
   for (uint8_t id = 1; id <= MAX_EFFECTS; id++) {
     totalForce += FFBEngine_CalculateEffectForce(id, time);
   }
@@ -149,8 +155,6 @@ int16_t FFBEngine_CalculateForce(void) {
 }
 
 int32_t FFBEngine_CalculateEffectForce(uint8_t id, uint32_t time) {
-  if(g_state.devicePaused)
-    return 0;
   const volatile EffectState *effect = GetEffectById(id);
   EffectCalcData data = {
       .effect = *effect,
@@ -164,7 +168,7 @@ int32_t FFBEngine_CalculateEffectForce(uint8_t id, uint32_t time) {
 
   if (data.effect.duration != DURATION_INF &&
       data.elapsed > data.effect.duration) {
-    FreeEffect(id);
+    StopEffect(id);
     return 0;
   }
 

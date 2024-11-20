@@ -1,7 +1,7 @@
 #define TRUE 1
 #define FALSE 0
 
-#define MAX_EFFECTS 20
+#define MAX_EFFECTS 40
 #define MEMORY_POOL_SIZE 0x3fff
 
 #define DURATION_INF 0xffff

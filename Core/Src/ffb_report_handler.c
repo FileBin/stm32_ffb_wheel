@@ -17,14 +17,15 @@ volatile const PID_BlockLoadReport *FFB_GetPidBlockLoad(void) {
 }
 
 void FFB_OnCreateNewEffect(const PID_CreateNewEffectReport* data) {
-  pidBlockLoad.effectBlockIndex = GetNextFreeEffect();
+  uint8_t id = GetNextFreeEffect();
+  pidBlockLoad.effectBlockIndex = id;
 
-  if (pidBlockLoad.effectBlockIndex == 0) {
+  if (id == 0) {
     pidBlockLoad.blockLoadStatus = BLOCK_LOAD_FULL;
   } else {
     pidBlockLoad.blockLoadStatus = BLOCK_LOAD_SUCCESS;
     pidBlockLoad.ramPoolAvailable -= SIZE_EFFECT;
-    volatile EffectState* effect = GetEffectById(pidBlockLoad.effectBlockIndex);
+    volatile EffectState* effect = GetEffectById(id);
     effect->effectType = data->effectType;
   }
 
@@ -74,11 +75,11 @@ void On_SetConstantForce(const PID_SetConstantForceReport *data) {
 
 void On_SetRampForce(const PID_SetRampForceReport *data) {
   volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
-  int32_t buf = data->rampEnd + data->rampStart;
-  effect->forceData.offset = (uint16_t)(buf >> 1);
+  int32_t tmp = data->rampEnd + data->rampStart;
+  effect->forceData.offset = (uint16_t)(tmp >> 1);
 
-  buf = data->rampEnd - data->rampStart;
-  effect->forceData.magnitude = (uint16_t)(buf >> 1);
+  tmp = data->rampEnd - data->rampStart;
+  effect->forceData.magnitude = (uint16_t)(tmp >> 1);
 }
 
 void On_EffectOperation(const PID_EffectOperationReport *data) {
