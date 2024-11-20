@@ -1,4 +1,6 @@
 #include "config.h"
+#include "main.h"
+#include "stm32f1xx_hal_gpio.h"
 #include "util.h"
 
 #include "input.h"
@@ -6,8 +8,8 @@
 #include "ffb_axis.h"
 #include "usb_reports.h"
 
-#include "usbd_def.h"
 #include "usbd_customhid.h"
+#include "usbd_def.h"
 
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
@@ -99,6 +101,30 @@ char readAnalogAxes(JoystickInputReport *report) {
 
   if (axis < .25f) {
     report->buttons |= 1 << 5;
+  }
+
+  GPIO_PinState state = HAL_GPIO_ReadPin(Button1_GPIO_Port, Button1_Pin);
+
+  if (state) {
+    report->buttons |= 1;
+  }
+
+  state = HAL_GPIO_ReadPin(Button2_GPIO_Port, Button2_Pin);
+
+  if (state) {
+    report->buttons |= 1 << 1;
+  }
+
+  state = HAL_GPIO_ReadPin(Button3_GPIO_Port, Button3_Pin);
+
+  if (state) {
+    report->buttons |= 1 << 2;
+  }
+
+  state = HAL_GPIO_ReadPin(Button4_GPIO_Port, Button4_Pin);
+
+  if (state) {
+    report->buttons |= 1 << 3;
   }
 
   return TRUE;
