@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include "ffb.h"
 #include "ffb_engine.h"
 
 #include <stdint.h>
@@ -15,7 +16,7 @@ volatile const PID_BlockLoadReport *FFB_GetPidBlockLoad(void) {
   return &pidBlockLoad;
 }
 
-void FFB_OnCreateNewEffect(void) {
+void FFB_OnCreateNewEffect(const PID_CreateNewEffectReport* data) {
   pidBlockLoad.effectBlockIndex = GetNextFreeEffect();
 
   if (pidBlockLoad.effectBlockIndex == 0) {
@@ -23,7 +24,10 @@ void FFB_OnCreateNewEffect(void) {
   } else {
     pidBlockLoad.blockLoadStatus = BLOCK_LOAD_SUCCESS;
     pidBlockLoad.ramPoolAvailable -= SIZE_EFFECT;
+    volatile EffectState* effect = GetEffectById(pidBlockLoad.effectBlockIndex);
+    effect->effectType = data->effectType;
   }
+
 }
 
 void On_SetEffect(const PID_SetEffectReport *data) {
@@ -79,7 +83,7 @@ void On_SetRampForce(const PID_SetRampForceReport *data) {
 
 void On_EffectOperation(const PID_EffectOperationReport *data) {
   volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
-  
+
   switch (data->effectOperation) {
   case EF_OP_EFFECT_START:
     if (data->loopCount > 0)
@@ -125,6 +129,8 @@ void On_DeviceControl(const PID_DeviceControlReport *data) {
     return;
   case DC_DEVICE_RESET:
     FreeAllEffects();
+    g_state.devicePaused = 0;
+    g_state.actuatorsEnabled = TRUE;
     return;
   case DC_DEVICE_PAUSE:
     g_state.devicePaused = 1;
@@ -166,7 +172,7 @@ void FFB_OnUsbData(uint8_t *buf, uint8_t len) {
     On_SetRampForce((const PID_SetRampForceReport *)buf);
     return;
   case CREATE_NEW_EFFECT_REPORT_ID:
-    FFB_OnCreateNewEffect();
+    FFB_OnCreateNewEffect((const PID_CreateNewEffectReport*)buf);
     return;
   case EFFECT_OPERATION_REPORT_ID:
     On_EffectOperation((const PID_EffectOperationReport *)buf);

@@ -38,16 +38,4 @@ uint8_t HID_GetReport(USBD_HandleTypeDef *pdev, uint16_t wValue) {
   return FALSE;
 }
 
-uint8_t HID_SetReport(uint16_t wValue) {
-  uint8_t reportId = LOBYTE(wValue);
-  uint8_t reportType = HIBYTE(wValue);
-
-  if (reportType == HID_REPORT_TYPE_FEATURE &&
-      reportId == CREATE_NEW_EFFECT_REPORT_ID) {
-    FFB_OnCreateNewEffect();
-    return TRUE;
-  }
-  return FALSE;
-}
-
 void HID_OutEvent(uint8_t *pbuf, uint8_t n) { FFB_OnUsbData(pbuf, n); }

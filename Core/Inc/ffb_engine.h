@@ -11,5 +11,5 @@ void FreeEffect(uint8_t id);
 void FreeAllEffects(void);
 void StopAllEffects(void);
 int16_t FFBEngine_CalculateForce(void);
-int32_t FFBEngine_CalculateEffectForce(volatile EffectState *effectState, uint32_t time);
+int32_t FFBEngine_CalculateEffectForce(uint8_t id, uint32_t time);
 
