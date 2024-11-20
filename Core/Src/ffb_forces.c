@@ -26,7 +26,7 @@ int32_t envelope(const EffectCalcData *data) {
   if (duration == DURATION_INF)
     return magnitude;
 
-  if (envelope.fadeTime && time > duration - envelope.fadeTime) {
+  if (envelope.fadeTime && time > (int32_t)duration - envelope.fadeTime) {
     return sign(magnitude) *
            (int32_t)(envelope.fadeLevel +
                      (float)(abs(magnitude) - envelope.fadeLevel) *

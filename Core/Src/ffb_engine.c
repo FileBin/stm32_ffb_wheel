@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include "ffb_engine.h"
+#include "ffb.h"
 #include "ffb_forces.h"
 #include "stm32f1xx_hal.h"
 
@@ -11,6 +12,7 @@
 
 
 #define SIZE_EFFECT sizeof(EffectState)
+#define VALIDATE_ID(eid) if(eid <= 0 || eid > MAX_EFFECTS)
 
 uint8_t nextEffectId = 1;
 volatile uint8_t g_deviceGain = 255;
@@ -32,10 +34,10 @@ volatile PID_BlockLoadReport pidBlockLoad = {
     .blockLoadStatus = BLOCK_LOAD_SUCCESS,
 };
 
-volatile EffectState gEffectStates[MAX_EFFECTS + 1] = {0};
+volatile EffectState gEffectStates[MAX_EFFECTS] = {0};
 
 volatile EffectState* GetEffectById(uint8_t id) {
-  return &gEffectStates[id];
+  return &gEffectStates[id-1];
 }
 
 uint8_t GetNextFreeEffect(void) {
@@ -47,41 +49,47 @@ uint8_t GetNextFreeEffect(void) {
 
   nextEffectId++;
 
-  while (gEffectStates[nextEffectId].isAllocated) {
-    if (nextEffectId >= MAX_EFFECTS)
+  while (GetEffectById(nextEffectId)->isAllocated) {
+    if (nextEffectId > MAX_EFFECTS)
       break; // the last spot was taken
     nextEffectId++;
   }
 
-  gEffectStates[id].isAllocated = TRUE;
+  AllocateEffect(id);
   return id;
 }
 
 void AllocateEffect(uint8_t id) {
-  memset((void *)&gEffectStates[id], 0, sizeof(EffectState));
-  gEffectStates[id].isAllocated = TRUE;
+  VALIDATE_ID(id) return;
+  volatile EffectState* effect = GetEffectById(id);
+
+  memset((void *)effect, 0, sizeof(EffectState));
+  effect->isAllocated = TRUE;
 }
 
 void StartEffect(uint8_t id) {
-  if (id > MAX_EFFECTS)
-    return;
+  VALIDATE_ID(id) return;
 
-  gEffectStates[id].isPlaying = TRUE;
-  gEffectStates[id].startTime = HAL_GetTick();
+  volatile EffectState* effect = GetEffectById(id);
+
+  effect->isPlaying = TRUE;
+  effect->startTime = HAL_GetTick();
 }
 
 void StopEffect(uint8_t id) {
-  if (id > MAX_EFFECTS)
-    return;
-  gEffectStates[id].isPlaying = FALSE;
+  VALIDATE_ID(id) return;
+
+  volatile EffectState* effect = GetEffectById(id);
+
+  effect->isPlaying = FALSE;
 }
 
 void FreeEffect(uint8_t id) {
-  if (id > MAX_EFFECTS)
-    return;
+  VALIDATE_ID(id) return;
 
-  gEffectStates[id].isAllocated = 0;
-  gEffectStates[id].isPlaying = 0;
+  volatile EffectState* effect = GetEffectById(id);
+
+  memset((void *)effect, 0, sizeof(EffectState));
 
   if (id < nextEffectId)
     nextEffectId = id;
@@ -96,7 +104,7 @@ void FreeAllEffects(void) {
 }
 
 void StopAllEffects(void) {
-  for (uint8_t id = 0; id <= MAX_EFFECTS; id++)
+  for (uint8_t id = 1; id <= MAX_EFFECTS; id++)
     StopEffect(id);
 }
 
@@ -134,9 +142,10 @@ int16_t FFBEngine_CalculateForce(void) {
   int32_t totalForce = 0;
   uint32_t time = HAL_GetTick();
 
-  for (uint8_t id = 0; id <= MAX_EFFECTS; id++) {
+  for (uint8_t id = 1; id <= MAX_EFFECTS; id++) {
+    volatile EffectState* effect = GetEffectById(id);
 
-    totalForce += FFBEngine_CalculateEffectForce(&gEffectStates[id], time);
+    totalForce += FFBEngine_CalculateEffectForce(effect, time);
   }
 
   return (int16_t)constrain(totalForce, -16383, 16383);

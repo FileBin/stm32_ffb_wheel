@@ -29,7 +29,6 @@ void FFB_OnCreateNewEffect(void) {
 void On_SetEffect(const PID_SetEffectReport *data) {
   volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
 
-
   effect->effectType = data->effectType;
   effect->duration = data->duration;
   effect->gain = data->gain;
@@ -79,9 +78,10 @@ void On_SetRampForce(const PID_SetRampForceReport *data) {
 }
 
 void On_EffectOperation(const PID_EffectOperationReport *data) {
+  volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
+  
   switch (data->effectOperation) {
   case EF_OP_EFFECT_START:
-    volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
     if (data->loopCount > 0)
       effect->duration *= data->loopCount;
     if (data->loopCount == 0xFF)
@@ -142,7 +142,7 @@ void On_DeviceGain(const PID_DeviceGainReport *data) {
 }
 
 void FFB_OnUsbData(uint8_t *buf, uint8_t len) {
-  if(len < 2)
+  if (len < 2)
     return;
 
   uint8_t report_id = buf[0];
