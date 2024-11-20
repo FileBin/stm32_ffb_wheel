@@ -62,6 +62,6 @@ typedef struct EffectCalcData {
 void FFB_OnCreateNewEffect(void);
 volatile const PID_BlockLoadReport *FFB_GetPidBlockLoad(void);
 
-void FFB_OnUsbData(const uint8_t *buf, uint8_t len);
+void FFB_OnUsbData(uint8_t *buf, uint8_t len);
 
 #endif

@@ -34,6 +34,10 @@ volatile PID_BlockLoadReport pidBlockLoad = {
 
 volatile EffectState gEffectStates[MAX_EFFECTS + 1] = {0};
 
+volatile EffectState* GetEffectById(uint8_t id) {
+  return &gEffectStates[id];
+}
+
 uint8_t GetNextFreeEffect(void) {
   if (nextEffectId >= MAX_EFFECTS) {
     return 0;
@@ -138,7 +142,7 @@ int16_t FFBEngine_CalculateForce(void) {
   return (int16_t)constrain(totalForce, -16383, 16383);
 }
 
-int32_t FFBEngine_CalculateEffectForce(volatile const EffectState *effectState, uint32_t time) {
+int32_t FFBEngine_CalculateEffectForce(volatile EffectState *effectState, uint32_t time) {
   EffectCalcData data = {
       .effect = *effectState,
   };

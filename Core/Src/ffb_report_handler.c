@@ -7,7 +7,6 @@
 
 #define SIZE_EFFECT sizeof(EffectState)
 
-extern volatile EffectState *gEffectStates;
 extern volatile PID_BlockLoadReport pidBlockLoad;
 extern volatile PIDStateReport g_state;
 extern volatile uint8_t g_deviceGain;
@@ -28,16 +27,17 @@ void FFB_OnCreateNewEffect(void) {
 }
 
 void On_SetEffect(const PID_SetEffectReport *data) {
-  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+  volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
 
-  effect->duration = data->duration;
+
   effect->effectType = data->effectType;
+  effect->duration = data->duration;
   effect->gain = data->gain;
   effect->enableAxis = data->enableAxis;
 }
 
 void On_SetEnvelope(const PID_SetEnvelopeReport *data) {
-  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+  volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
 
   effect->envelopeData.attackLevel = (int16_t)abs(data->attackLevel);
   effect->envelopeData.fadeLevel = (int16_t)abs(data->fadeLevel);
@@ -46,7 +46,7 @@ void On_SetEnvelope(const PID_SetEnvelopeReport *data) {
 }
 
 void On_SetConditionReport(const PID_SetConditionReport *data) {
-  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+  volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
 
   effect->forceData.conditional.cpOffset = data->cpOffset;
   effect->forceData.conditional.positiveCoefficient = data->positiveCoefficient;
@@ -57,7 +57,7 @@ void On_SetConditionReport(const PID_SetConditionReport *data) {
 }
 
 void On_SetPeriodic(const PID_SetPeriodicReport *data) {
-  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+  volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
 
   effect->forceData.magnitude = data->magnitude;
   effect->forceData.offset = data->offset;
@@ -65,12 +65,12 @@ void On_SetPeriodic(const PID_SetPeriodicReport *data) {
 }
 
 void On_SetConstantForce(const PID_SetConstantForceReport *data) {
-  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+  volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
   effect->forceData.magnitude = data->magnitude;
 }
 
 void On_SetRampForce(const PID_SetRampForceReport *data) {
-  volatile EffectState *effect = &gEffectStates[data->effectBlockIndex];
+  volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
   int32_t buf = data->rampEnd + data->rampStart;
   effect->forceData.offset = (uint16_t)(buf >> 1);
 
@@ -81,10 +81,11 @@ void On_SetRampForce(const PID_SetRampForceReport *data) {
 void On_EffectOperation(const PID_EffectOperationReport *data) {
   switch (data->effectOperation) {
   case EF_OP_EFFECT_START:
+    volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
     if (data->loopCount > 0)
-      gEffectStates[data->effectBlockIndex].duration *= data->loopCount;
+      effect->duration *= data->loopCount;
     if (data->loopCount == 0xFF)
-      gEffectStates[data->effectBlockIndex].duration = DURATION_INF;
+      effect->duration = DURATION_INF;
     StartEffect(data->effectBlockIndex);
     return;
 
@@ -140,7 +141,7 @@ void On_DeviceGain(const PID_DeviceGainReport *data) {
   g_deviceGain = data->gain;
 }
 
-void FFB_OnUsbData(const uint8_t *buf, uint8_t len) {
+void FFB_OnUsbData(uint8_t *buf, uint8_t len) {
   if(len < 2)
     return;
 
@@ -163,6 +164,9 @@ void FFB_OnUsbData(const uint8_t *buf, uint8_t len) {
     return;
   case SET_RAMP_FORCE_REPORT_ID:
     On_SetRampForce((const PID_SetRampForceReport *)buf);
+    return;
+  case CREATE_NEW_EFFECT_REPORT_ID:
+    FFB_OnCreateNewEffect();
     return;
   case EFFECT_OPERATION_REPORT_ID:
     On_EffectOperation((const PID_EffectOperationReport *)buf);

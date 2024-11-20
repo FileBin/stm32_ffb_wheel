@@ -20,7 +20,7 @@
 #include "util.h"
 
 #define USB_SEND_MIN_INTERVAL 10
-#define MOTOR_MIN_FORCE 10000
+#define MOTOR_MIN_FORCE 5
 
 void process_usb(void);
 void updateMotor(void);
@@ -33,7 +33,39 @@ void user_main(void) {
 
 extern TIM_HandleTypeDef htim3;
 void updateMotor(void) {
+  // EffectState spring = {
+  //     .effectType = ET_SPRING,
+  //     .duration = DURATION_INF,
+  //     .enableAxis = 1,
+  //     .gain = 255,
+  //     .isAllocated = 1,
+  //     .isPlaying = 1,
+  //     .envelopeData =
+  //         {
+  //             .attackTime = 1,
+  //             .fadeTime = 1,
+  //             .attackLevel = 0x7fff,
+  //             .fadeLevel = 0x7fff,
+  //         },
+  //     .forceData =
+  //         {
+  //             .magnitude = 255,
+  //             .offset = 0,
+  //             .conditional =
+  //                 {
+  //                     .positiveCoefficient = 0x7fff,
+  //                     .negativeCoefficient = 0x7fff,
+  //                     .positiveSaturation = 0x7fff,
+  //                     .negativeSaturation = 0x7fff,
+  //                     .cpOffset = 0,
+  //                     .deadBand = 0,
+  //                 },
+  //         },
+  // };
+  // int32_t force = FFBEngine_CalculateEffectForce(&spring, HAL_GetTick());
+  
   int32_t force = FFBEngine_CalculateForce();
+
 
   char enable_motor = FALSE;
 
@@ -118,11 +150,11 @@ char readAnalogAxes(JoystickInputReport *report) {
   if (!readAnalog(&hadc1, ADC_CHANNEL_0, &analog_val)) {
     return FALSE;
   }
-  int32_t tmp = FFB_Axis_Update(ANALOG_TO_INT16(analog_val));
+  int32_t tmp = ANALOG_TO_INT16(analog_val);
   tmp *= 3;
   tmp /= 2;
   tmp = constrain(tmp, -32768, 32767);
-  report->steering = (uint16_t)tmp;
+  report->steering = FFB_Axis_Update((int16_t)tmp);
 
   if (!readAnalog(&hadc2, ADC_CHANNEL_1, &analog_val)) {
     return FALSE;

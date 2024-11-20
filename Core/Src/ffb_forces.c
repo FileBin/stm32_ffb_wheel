@@ -105,7 +105,7 @@ int32_t FFB_PeriodicForce(const EffectCalcData *data) {
 
 extern volatile FFB_Axis FFB_axis;
 
-int16_t GetAxisPosition(void) { return FFB_axis.position >> 1; }
+int16_t GetAxisPosition(void) { return FFB_axis.position; }
 
 int16_t GetAxisVelocity(void) { return FFB_axis.velocity; }
 

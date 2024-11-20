@@ -1,4 +1,7 @@
 #include "ffb.h"
+#include <stdint.h>
+
+volatile EffectState* GetEffectById(uint8_t id);
 
 uint8_t GetNextFreeEffect(void);
 void AllocateEffect(uint8_t id);
@@ -9,5 +12,5 @@ void FreeAllEffects(void);
 void FreeAllEffects(void);
 void StopAllEffects(void);
 int16_t FFBEngine_CalculateForce(void);
-int32_t FFBEngine_CalculateEffectForce(volatile const EffectState *effectState, uint32_t time);
+int32_t FFBEngine_CalculateEffectForce(volatile EffectState *effectState, uint32_t time);
 

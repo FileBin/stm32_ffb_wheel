@@ -24,6 +24,7 @@
 /* USER CODE BEGIN INCLUDE */
 #include "usb_report_handler.h"
 #include <stdint.h>
+#include <string.h>
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -91,7 +92,6 @@
  */
 
 /** Usb HID report descriptor. */
-extern uint8_t CUSTOM_HID_ReportDesc_FS[USBD_CUSTOM_HID_REPORT_DESC_SIZE];
 /* USER CODE BEGIN PRIVATE_VARIABLES */
 
 /* USER CODE END PRIVATE_VARIABLES */
@@ -173,12 +173,7 @@ static int8_t CUSTOM_HID_DeInit_FS(void) {
 static int8_t CUSTOM_HID_OutEvent_FS(uint8_t* pbuf, uint8_t n)
 {
   /* USER CODE BEGIN 6 */
-  uint8_t buf[USBD_CUSTOMHID_OUTREPORT_BUF_SIZE];
-
-  //USBD_LL_PrepareReceive(&hUsbDeviceFS, CUSTOM_HID_EPOUT_ADDR, buf,
-  //                       USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);
-
-  HID_OutEvent(buf, USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);
+  HID_OutEvent(pbuf, n);
   return (USBD_OK);
   /* USER CODE END 6 */
 }

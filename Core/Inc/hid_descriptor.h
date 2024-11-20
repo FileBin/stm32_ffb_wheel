@@ -444,7 +444,7 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[] __ALIGN_END =
       // PIDCreateNewEffectReport
       HID_USAGE (CREATE_NEW_EFFECT_REPORT),
       HID_COLLECTION (LOGICAL),
-        HID_REPORT_ID (1),
+        HID_REPORT_ID (7),
 
         HID_USAGE (EFFECT_TYPE),
         HID_COLLECTION (LOGICAL),
@@ -483,7 +483,7 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[] __ALIGN_END =
       HID_USAGE_PAGE (PHYSICAL_DEVICE),
       HID_USAGE (PID_BLOCK_LOAD_REPORT),
       HID_COLLECTION (LOGICAL),
-        HID_REPORT_ID (2),
+        HID_REPORT_ID (8),
 
         HID_USAGE (EFFECT_BLOCK_INDEX),
         HID_LOGICAL_MINIMUM1 (1),
@@ -519,7 +519,7 @@ __ALIGN_BEGIN static uint8_t CUSTOM_HID_ReportDesc_FS[] __ALIGN_END =
       HID_USAGE (PID_POOL_REPORT),
       HID_COLLECTION (LOGICAL),
 
-        HID_REPORT_ID (3),
+        HID_REPORT_ID (9),
 
         HID_USAGE (RAM_POOL_SIZE),
         HID_REPORT_SIZE (16),

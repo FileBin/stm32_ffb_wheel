@@ -464,7 +464,7 @@ static uint8_t  USBD_CUSTOM_HID_Setup(USBD_HandleTypeDef *pdev,
         case CUSTOM_HID_REQ_SET_REPORT:
           hhid->IsReportAvailable = 1U;
           USBD_CtlPrepareRx(pdev, hhid->Report_buf, req->wLength);
-          HID_SetReport(req->wValue);
+          //HID_SetReport(req->wValue);
           break;
 
         case CUSTOM_HID_REQ_GET_REPORT:
@@ -671,7 +671,7 @@ static uint8_t USBD_CUSTOM_HID_EP0_RxReady(USBD_HandleTypeDef *pdev)
 
   if (hhid->IsReportAvailable == 1U)
   {
-    //((USBD_CUSTOM_HID_ItfTypeDef *)pdev->pUserData)->OutEvent(hhid->Report_buf[0], hhid->Report_buf[1]);
+    ((USBD_CUSTOM_HID_ItfTypeDef *)pdev->pUserData)->OutEvent(hhid->Report_buf, USBD_CUSTOMHID_OUTREPORT_BUF_SIZE);
     hhid->IsReportAvailable = 0U;
   }
 

@@ -50,4 +50,4 @@ uint8_t HID_SetReport(uint16_t wValue) {
   return FALSE;
 }
 
-void HID_OutEvent(const uint8_t *pbuf, uint8_t n) { FFB_OnUsbData(pbuf, n); }
+void HID_OutEvent(uint8_t *pbuf, uint8_t n) { FFB_OnUsbData(pbuf, n); }

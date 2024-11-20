@@ -8,11 +8,10 @@
             "name": "Cortex Debug",
             "cwd": "${workspaceFolder}",
             "executable": "build/Debug/stm32_ffb_wheel.elf",
-            "stm32cubeprogrammer": "/home/filebin/st/stm32cubeclt_1.16.0/STM32CubeProgrammer/bin/",
             "request": "launch",
             "type": "cortex-debug",
+            "servertype": "stutil",
             "runToEntryPoint": "main",
-            "servertype": "stlink",
             "device": "STM32F1xx_MD"
         }
     ]

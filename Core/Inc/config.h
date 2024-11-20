@@ -6,4 +6,4 @@
 
 #define DURATION_INF 0xffff
 
-#define FFB_DEAD_ZONE 0x002f
+#define FFB_DEAD_ZONE 0x00ff
