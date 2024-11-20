@@ -9,12 +9,6 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-int32_t sign(int32_t num) {
-  if (num >= 0)
-    return (+1);
-  return (-1);
-}
-
 int32_t envelope(const EffectCalcData *data) {
 
   EnvelopeData envelope = data->effect.envelopeData;
