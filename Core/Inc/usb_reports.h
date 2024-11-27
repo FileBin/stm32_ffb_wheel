@@ -47,6 +47,7 @@ HID_REPORT PID_SetEffectReport {
   uint8_t effectBlockIndex;
   uint8_t effectType;
   uint16_t duration;     // milliseconds
+  uint16_t triggerRepeatInterval;
   uint16_t samplePeriod; // microseconds
   uint8_t gain;
   uint8_t enableAxis : 1;
@@ -160,7 +161,7 @@ HID_REPORT PID_DeviceGainReport {
 PID_DeviceGainReport;
 
 // Feature Reports
-#define CREATE_NEW_EFFECT_REPORT_ID 1
+#define CREATE_NEW_EFFECT_REPORT_ID 7
 
 typedef enum PID_EffectType {
   ET_CONSTANT_FORCE = 1,
@@ -183,7 +184,7 @@ HID_REPORT PID_CreateNewEffectReport {
 }
 PID_CreateNewEffectReport;
 
-#define PID_BLOCK_LOAD_REPORT_ID 2
+#define PID_BLOCK_LOAD_REPORT_ID 8
 
 typedef enum PID_BlockLoadStatus {
   BLOCK_LOAD_SUCCESS = 1,
@@ -199,7 +200,7 @@ HID_REPORT PID_BlockLoadReport {
 }
 PID_BlockLoadReport;
 
-#define PID_POOL_FEATURE_REPORT_ID 3
+#define PID_POOL_FEATURE_REPORT_ID 9
 #define PID_DEVICE_MANAGED_POOL 1
 #define PID_SHARED_PARAMETER_BLOCKS 1
 

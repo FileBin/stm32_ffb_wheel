@@ -56,12 +56,12 @@ typedef struct EffectCalcData {
   float attackTimeC;
   float periodC;
 
-  EffectState effect;
+  const EffectState effect;
 } EffectCalcData;
 
-void FFB_OnCreateNewEffect(const PID_CreateNewEffectReport *report);
+void FFB_OnCreateNewEffect(const PID_CreateNewEffectReport* data);
 volatile const PID_BlockLoadReport *FFB_GetPidBlockLoad(void);
 
-void FFB_OnUsbData(const uint8_t *buf, uint8_t len);
+void FFB_OnUsbData(uint8_t *buf, uint8_t len);
 
 #endif

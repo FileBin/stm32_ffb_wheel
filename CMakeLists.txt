@@ -50,6 +50,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     # Add user sources here
     Core/Src/user_main.c
     Core/Src/blink.c
+    Core/Src/input.c
+    Core/Src/motor.c
     Core/Src/util.c
     Core/Src/trig.c
     Core/Src/usb_reports.c

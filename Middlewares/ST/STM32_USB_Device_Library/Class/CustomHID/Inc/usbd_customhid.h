@@ -21,7 +21,6 @@
 #ifndef __USB_CUSTOMHID_H
 #define __USB_CUSTOMHID_H
 
-#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
