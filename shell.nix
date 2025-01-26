@@ -6,7 +6,6 @@ mkShell {
     glibc_multi
     cmake
     stlink
-    git
     ninja
     clang-tools
     (vscode-with-extensions.override {
