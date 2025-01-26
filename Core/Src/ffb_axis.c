@@ -21,9 +21,11 @@ int16_t MOV_AVG_SetValue(MovingAverage16 *avg, int16_t value) {
   return (int16_t)(avg->total >> MOV_AVG_LEVEL);
 }
 
-int16_t MOV_AVG_GetValue(MovingAverage16 *avg) {}
+int16_t MOV_AVG_GetValue(MovingAverage16 *avg) {
+  return avg->values[avg->index];
+}
 
-int16_t MOV_AVG_Reset(MovingAverage16 *avg) {
+void MOV_AVG_Reset(MovingAverage16 *avg) {
   avg->index = 0;
   avg->total = 0;
 }
