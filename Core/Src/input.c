@@ -1,3 +1,4 @@
+#include "as5600.h"
 #include "config.h"
 #include "main.h"
 #include "stm32f1xx_hal_gpio.h"
@@ -13,6 +14,7 @@
 
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
+extern AS5600_TypeDef as5600;
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
@@ -63,9 +65,11 @@ char readAnalogAxes(JoystickInputReport *report) {
   if (!readAnalog(&hadc1, ADC_CHANNEL_0, &analog_val)) {
     return FALSE;
   }
-  int32_t tmp = ANALOG_TO_INT16(analog_val);
-  tmp *= 3;
-  tmp /= 2;
+
+  uint16_t angle;
+  AS5600_GetRawAngle(&as5600, &angle);
+
+  int32_t tmp = angle - 32768;
   tmp = constrain(tmp, -32768, 32767);
   report->steering = FFB_Axis_Update((int16_t)tmp);
 

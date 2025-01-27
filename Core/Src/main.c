@@ -22,7 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "as5600.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,6 +66,7 @@ static void MX_I2C1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void user_main(void);
+AS5600_TypeDef as5600 = {0};
 /* USER CODE END 0 */
 
 /**
@@ -104,6 +105,11 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+
+  // Initialize AS5600 with selected options and check for initialization
+  if(AS5600_Init(&as5600) != HAL_OK){
+    Error_Handler();
+  }
   /* USER CODE END 2 */
 
   /* Infinite loop */
