@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "as5600.h"
+#define AS5600_SHIFTED_SLAVE_ADDRESS	0x6c
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -105,6 +106,9 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+
+  as5600.i2cHandle = &hi2c1;
+  as5600.i2cAddr = AS5600_SHIFTED_SLAVE_ADDRESS;
 
   // Initialize AS5600 with selected options and check for initialization
   if(AS5600_Init(&as5600) != HAL_OK){

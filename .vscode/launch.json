@@ -11,7 +11,7 @@
             "request": "launch",
             "type": "cortex-debug",
             "servertype": "stutil",
-            "runToEntryPoint": "main",
+            // "runToEntryPoint": "main",
             "device": "STM32F1xx_MD"
         }
     ]
