@@ -13,7 +13,7 @@
         "usbd_customhid_if_template.h": "c"
     },
     "clangd.arguments": [
-        "--query-driver=arm-none-eabi-gcc"
+        "--query-driver=/usr/bin/arm-none-eabi-gcc"
     ],
     "C_Cpp.intelliSenseEngine": "disabled",
 }
