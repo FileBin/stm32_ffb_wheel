@@ -60,7 +60,8 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     Core/Src/ffb_forces.c
     Core/Src/ffb_axis.c
     Core/Src/ffb_report_handler.c
-    Core/Src/as5600.c
+    Core/Src/as5600_ll.c
+    Core/Src/steering_wheel_driver.c
 )
 
 # Add include paths

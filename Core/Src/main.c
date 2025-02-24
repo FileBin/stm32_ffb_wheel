@@ -22,8 +22,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "as5600.h"
-#define AS5600_SHIFTED_SLAVE_ADDRESS	0x6c
+#include "steering_wheel_driver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,7 +49,7 @@ I2C_HandleTypeDef hi2c1;
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-
+SteeringWheelDriver steering_wheel_driver; 
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -67,7 +66,6 @@ static void MX_I2C1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void user_main(void);
-AS5600_TypeDef as5600 = {0};
 /* USER CODE END 0 */
 
 /**
@@ -106,14 +104,7 @@ int main(void)
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-
-  as5600.i2cHandle = &hi2c1;
-  as5600.i2cAddr = AS5600_SHIFTED_SLAVE_ADDRESS;
-
-  // Initialize AS5600 with selected options and check for initialization
-  if(AS5600_Init(&as5600) != HAL_OK){
-    Error_Handler();
-  }
+  SteeringWheelDriver_Init(&steering_wheel_driver);
   /* USER CODE END 2 */
 
   /* Infinite loop */

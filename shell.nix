@@ -1,12 +1,13 @@
 with (import <nixpkgs> {  });
 mkShell {
     packages = [
-        gcc-arm-embedded
+        gcc-arm-embedded-13
         glibc_multi
         cmake
         stlink
         ninja
         clang-tools
+        ncurses
         (vscode-with-extensions.override {
             vscodeExtensions = with vscode-extensions; [
                 llvm-vs-code-extensions.vscode-clangd
@@ -15,6 +16,8 @@ mkShell {
                 ms-vscode.cmake-tools
                 ms-vscode.hexeditor
                 tal7aouy.icons
+                jnoortheen.nix-ide
+                wmaurer.change-case
             ] ++ vscode-utils.extensionsFromVscodeMarketplace [
                 {
                     name = "cortex-debug";

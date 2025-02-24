@@ -1,22 +1,24 @@
-#include "as5600.h"
 #include "config.h"
 #include "main.h"
 #include "stm32f1xx_hal_gpio.h"
 #include "util.h"
 
 #include "input.h"
+#include "steering_wheel_driver.h"
 
 #include "ffb_axis.h"
 #include "usb_reports.h"
 
 #include "usbd_customhid.h"
 #include "usbd_def.h"
+#include <stdint.h>
 
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
-extern AS5600_TypeDef as5600;
 
 extern USBD_HandleTypeDef hUsbDeviceFS;
+
+extern SteeringWheelDriver steering_wheel_driver;
 
 #define ANALOG_MAX 0x0fff
 
@@ -66,10 +68,10 @@ char readAnalogAxes(JoystickInputReport *report) {
     return FALSE;
   }
 
-  uint16_t angle;
-  AS5600_GetRawAngle(&as5600, &angle);
 
-  int32_t tmp = angle - 32768;
+  SteeringWheelDriver_UpdateWheelPosition(&steering_wheel_driver);
+  
+  int32_t tmp = steering_wheel_driver.wheel_position * 6;
   tmp = constrain(tmp, -32768, 32767);
   report->steering = FFB_Axis_Update((int16_t)tmp);
 
@@ -89,7 +91,7 @@ char readAnalogAxes(JoystickInputReport *report) {
 
   axis = ANALOG_TO_FLOAT(analog_val);
 
-  axis = APPLY_DEADZONES(axis, .1f, .1f);
+  axis = APPLY_DEADZONES(axis, .35f, .1f);
 
   report->brake = (uint16_t)AXIS_TO_UINT16(axis);
 
