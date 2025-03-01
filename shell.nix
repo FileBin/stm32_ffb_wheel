@@ -8,6 +8,7 @@ mkShell {
         ninja
         clang-tools
         ncurses
+        gh
         (vscode-with-extensions.override {
             vscodeExtensions = with vscode-extensions; [
                 llvm-vs-code-extensions.vscode-clangd

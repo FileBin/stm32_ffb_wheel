@@ -9,3 +9,5 @@ int32_t FFB_DamperForce(const EffectCalcData *data);
 int32_t FFB_InertiaForce(const EffectCalcData *data);
 int32_t FFB_FrictionForce(const EffectCalcData *data);
 
+int32_t FFBEngine_LimitForce(void);
+

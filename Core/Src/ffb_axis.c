@@ -1,42 +1,43 @@
 #include "ffb_axis.h"
+#include "util.h"
 #include "stm32f1xx_hal.h"
 #include <stdint.h>
 
 #define MOV_AVG_LEVEL 3
 #define MOV_AVG_SIZE (1 << MOV_AVG_LEVEL)
 
-typedef struct MovingAverage16 {
-  int16_t values[MOV_AVG_SIZE];
+typedef struct MovingAverage32 {
+  int32_t values[MOV_AVG_SIZE];
   int32_t total;
   uint8_t index;
-} MovingAverage16;
+} MovingAverage32;
 
-int16_t MOV_AVG_SetValue(MovingAverage16 *avg, int16_t value) {
+int32_t MOV_AVG_SetValue(MovingAverage32 *avg, int32_t value) {
   avg->total -= avg->values[avg->index];
   avg->total += value;
   avg->values[avg->index] = value;
 
   avg->index = (avg->index + 1) % MOV_AVG_SIZE;
 
-  return (int16_t)(avg->total >> MOV_AVG_LEVEL);
+  return (avg->total >> MOV_AVG_LEVEL);
 }
 
-int16_t MOV_AVG_GetValue(MovingAverage16 *avg) {
+int32_t MOV_AVG_GetValue(MovingAverage32 *avg) {
   return avg->values[avg->index];
 }
 
-void MOV_AVG_Reset(MovingAverage16 *avg) {
+void MOV_AVG_Reset(MovingAverage32 *avg) {
   avg->index = 0;
   avg->total = 0;
 }
 
 volatile FFB_Axis FFB_axis;
 
-MovingAverage16 position_filter;
-MovingAverage16 velocity_filter;
-MovingAverage16 acceleration_filter;
+MovingAverage32 position_filter;
+MovingAverage32 velocity_filter;
+MovingAverage32 acceleration_filter;
 
-int16_t FFB_Axis_Update(int16_t value) {
+int16_t FFB_Axis_Update(int32_t value) {
   int32_t lastPosition = FFB_axis.position;
   value = MOV_AVG_SetValue(&position_filter, value);
   FFB_axis.position = value;
@@ -53,5 +54,5 @@ int16_t FFB_Axis_Update(int16_t value) {
       &acceleration_filter, ((newVelocity - FFB_axis.velocity) << 15) / td);
   FFB_axis.velocity = newVelocity;
 
-  return value;
+  return (int16_t)constrain(value, -32768, 32767);
 }

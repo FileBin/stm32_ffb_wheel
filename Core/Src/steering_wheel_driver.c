@@ -88,7 +88,7 @@ SteeringWheelDriver_UpdateWheelPosition(SteeringWheelDriver *drv) {
     drv->revolutions--;
 
   drv->wheel_angle = angle;
-  drv->wheel_position = drv->revolutions * REVOLUTION_MAX + drv->wheel_angle;
+  drv->wheel_position = drv->revolutions * REVOLUTION_MAX + drv->wheel_angle - 1124;
 
   return HAL_OK;
 }

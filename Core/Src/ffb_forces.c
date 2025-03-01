@@ -222,3 +222,14 @@ int32_t FFB_FrictionForce(const EffectCalcData *data) {
 
   return 0;
 }
+
+int32_t FFBEngine_LimitForce(void) {
+  if(FFB_axis.position > 33000) {
+    return -1000000;
+  }
+
+  if(FFB_axis.position < -33000) {
+    return 1000000;
+  }
+  return 0;
+}

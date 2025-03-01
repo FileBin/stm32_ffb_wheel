@@ -71,9 +71,8 @@ char readAnalogAxes(JoystickInputReport *report) {
 
   SteeringWheelDriver_UpdateWheelPosition(&steering_wheel_driver);
   
-  int32_t tmp = steering_wheel_driver.wheel_position * 6;
-  tmp = constrain(tmp, -32768, 32767);
-  report->steering = FFB_Axis_Update((int16_t)tmp);
+  int32_t tmp = steering_wheel_driver.wheel_position * 12;
+  report->steering = FFB_Axis_Update(tmp);
 
   if (!readAnalog(&hadc2, ADC_CHANNEL_1, &analog_val)) {
     return FALSE;

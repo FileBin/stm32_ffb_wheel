@@ -69,10 +69,10 @@ void Error_Handler(void);
 #define Button3_GPIO_Port GPIOB
 #define Button4_Pin GPIO_PIN_15
 #define Button4_GPIO_Port GPIOB
-#define MotorPositive_Pin GPIO_PIN_3
-#define MotorPositive_GPIO_Port GPIOB
-#define MotorNegative_Pin GPIO_PIN_4
-#define MotorNegative_GPIO_Port GPIOB
+#define MotorPositive_Pin GPIO_PIN_14
+#define MotorPositive_GPIO_Port GPIOC
+#define MotorNegative_Pin GPIO_PIN_15
+#define MotorNegative_GPIO_Port GPIOC
 
 /* USER CODE BEGIN Private defines */
 

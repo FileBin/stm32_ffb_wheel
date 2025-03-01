@@ -151,6 +151,7 @@ int16_t FFBEngine_CalculateForce(void) {
     totalForce += FFBEngine_CalculateEffectForce(id, time);
   }
 
+  totalForce = constrain(totalForce, -16383, 16383) + FFBEngine_LimitForce();
   return (int16_t)constrain(totalForce, -16383, 16383);
 }
 
