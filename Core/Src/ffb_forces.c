@@ -223,13 +223,10 @@ int32_t FFB_FrictionForce(const EffectCalcData *data) {
   return 0;
 }
 
-int32_t FFBEngine_LimitForce(void) {
-  if(FFB_axis.position > 33000) {
-    return -1000000;
-  }
+#define INERTIA_POWER 600
 
-  if(FFB_axis.position < -33000) {
-    return 1000000;
-  }
-  return 0;
+int32_t FFBEngine_LimitForce(void) {
+  int32_t out = constrain(33000 - FFB_axis.position, -1000000, 0);
+  out += constrain(-FFB_axis.position - 33000, 0, 1000000);
+  return out * 16;
 }

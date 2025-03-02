@@ -3,7 +3,7 @@
 #include "stm32f1xx_hal.h"
 #include <stdint.h>
 
-#define MOV_AVG_LEVEL 3
+#define MOV_AVG_LEVEL 6
 #define MOV_AVG_SIZE (1 << MOV_AVG_LEVEL)
 
 typedef struct MovingAverage32 {
@@ -48,10 +48,10 @@ int16_t FFB_Axis_Update(int32_t value) {
 
   int32_t newVelocity;
   newVelocity =
-      MOV_AVG_SetValue(&velocity_filter, ((value - lastPosition) << 15) / td);
+      MOV_AVG_SetValue(&velocity_filter, ((value - lastPosition) * (2 << 15)) / td);
 
   FFB_axis.acceleration = MOV_AVG_SetValue(
-      &acceleration_filter, ((newVelocity - FFB_axis.velocity) << 15) / td);
+      &acceleration_filter, ((newVelocity - FFB_axis.velocity) * (2 << 15)) / td);
   FFB_axis.velocity = newVelocity;
 
   return (int16_t)constrain(value, -32768, 32767);

@@ -2,7 +2,7 @@
 
 typedef struct FFB_Axis {
   int32_t position;
-  int16_t velocity;
+  int32_t velocity;
   int16_t acceleration;
   uint32_t prevUpdateTime;
 } FFB_Axis;
