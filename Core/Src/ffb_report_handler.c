@@ -35,7 +35,10 @@ void On_SetEffect(const PID_SetEffectReport *data) {
   volatile EffectState *effect = GetEffectById(data->effectBlockIndex);
 
   effect->effectType = data->effectType;
-  effect->duration = data->duration;
+  if(data->duration == 0)
+    effect->duration = DURATION_INF;
+  else
+    effect->duration = data->duration;
   effect->gain = data->gain;
   effect->enableAxis = data->enableAxis;
 }
@@ -89,7 +92,7 @@ void On_EffectOperation(const PID_EffectOperationReport *data) {
   case EF_OP_EFFECT_START:
     if (data->loopCount > 0)
       effect->duration *= data->loopCount;
-    if (data->loopCount == 0xFF)
+    if (data->loopCount == 0xFF || data->loopCount == 0x0)
       effect->duration = DURATION_INF;
     StartEffect(data->effectBlockIndex);
     return;

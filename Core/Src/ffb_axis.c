@@ -3,7 +3,7 @@
 #include "stm32f1xx_hal.h"
 #include <stdint.h>
 
-#define MOV_AVG_LEVEL 6
+#define MOV_AVG_LEVEL 2
 #define MOV_AVG_SIZE (1 << MOV_AVG_LEVEL)
 
 typedef struct MovingAverage32 {

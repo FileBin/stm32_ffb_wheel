@@ -47,10 +47,14 @@ HID_REPORT PID_SetEffectReport {
   uint8_t effectBlockIndex;
   uint8_t effectType;
   uint16_t duration;     // milliseconds
+  uint16_t startDelay;
   uint16_t triggerRepeatInterval;
   uint16_t samplePeriod; // microseconds
   uint8_t gain;
+  uint8_t triggerButton;
   uint8_t enableAxis : 1;
+  uint8_t enableDirection : 1;
+  uint8_t direction : 6;
 }
 PID_SetEffectReport;
 
@@ -77,6 +81,7 @@ HID_REPORT PID_SetConditionReport {
   uint16_t positiveSaturation;
   uint16_t negativeSaturation;
   uint16_t deadBand;
+  uint16_t parameterBlockOffset;
 }
 PID_SetConditionReport;
 
