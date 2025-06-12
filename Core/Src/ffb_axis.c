@@ -39,7 +39,7 @@ MovingAverage32 acceleration_filter;
 
 int16_t FFB_Axis_Update(int32_t value) {
   int32_t lastPosition = FFB_axis.position;
-  value = MOV_AVG_SetValue(&position_filter, value);
+  // value = MOV_AVG_SetValue(&position_filter, value);
   FFB_axis.position = value;
 
   uint32_t tmpUs = HAL_GetTick();

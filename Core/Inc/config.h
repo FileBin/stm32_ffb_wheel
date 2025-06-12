@@ -7,3 +7,5 @@
 #define DURATION_INF 0xffff
 
 #define FFB_DEAD_ZONE 0x00ff
+
+#define CHANGE_DIRECTION_SAFE_TIME 2

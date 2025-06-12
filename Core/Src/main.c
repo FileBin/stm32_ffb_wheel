@@ -59,7 +59,7 @@ static void MX_GPIO_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_ADC2_Init(void);
 static void MX_TIM3_Init(void);
-static void MX_I2C1_Init(void);
+void MX_I2C1_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -265,7 +265,7 @@ static void MX_ADC2_Init(void)
   * @param None
   * @retval None
   */
-static void MX_I2C1_Init(void)
+void MX_I2C1_Init(void)
 {
 
   /* USER CODE BEGIN I2C1_Init 0 */
@@ -315,7 +315,7 @@ static void MX_TIM3_Init(void)
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 0;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 16383;
+  htim3.Init.Period = 4095;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
@@ -364,7 +364,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(board_led_GPIO_Port, board_led_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, MotorPositive_Pin|MotorNegative_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(MotorNegative_Pin_GPIO_Port, MotorNegative_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(MotorPositive_Pin_GPIO_Port, MotorPositive_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : board_led_Pin */
   GPIO_InitStruct.Pin = board_led_Pin;
@@ -380,11 +381,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   /*Configure GPIO pins : MotorPositive_Pin MotorNegative_Pin */
-  GPIO_InitStruct.Pin = MotorPositive_Pin|MotorNegative_Pin;
+  GPIO_InitStruct.Pin = MotorNegative_Pin|MotorPositive_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(MotorNegative_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(MotorPositive_Pin_GPIO_Port, &GPIO_InitStruct);
 
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */

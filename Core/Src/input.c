@@ -64,14 +64,9 @@ char readAnalogAxes(JoystickInputReport *report) {
   report->buttons = 0;
   float axis;
 
-  if (!readAnalog(&hadc1, ADC_CHANNEL_0, &analog_val)) {
-    return FALSE;
-  }
-
-
   SteeringWheelDriver_UpdateWheelPosition(&steering_wheel_driver);
-  
-  int32_t tmp = steering_wheel_driver.wheel_position * 12;
+
+  int32_t tmp = steering_wheel_driver.wheel_position * 10;
   report->steering = FFB_Axis_Update(tmp);
 
   if (!readAnalog(&hadc2, ADC_CHANNEL_1, &analog_val)) {
@@ -80,7 +75,7 @@ char readAnalogAxes(JoystickInputReport *report) {
 
   axis = ANALOG_TO_FLOAT(analog_val);
 
-  axis = APPLY_DEADZONES(axis, .1f, .1f);
+  axis = APPLY_DEADZONES(axis, .25f, .1f);
 
   report->accelerator = (uint16_t)AXIS_TO_UINT16(axis);
 
@@ -90,7 +85,7 @@ char readAnalogAxes(JoystickInputReport *report) {
 
   axis = ANALOG_TO_FLOAT(analog_val);
 
-  axis = APPLY_DEADZONES(axis, .35f, .1f);
+  axis = APPLY_DEADZONES(axis, .4f, .1f);
 
   report->brake = (uint16_t)AXIS_TO_UINT16(axis);
 
@@ -108,30 +103,6 @@ char readAnalogAxes(JoystickInputReport *report) {
     report->buttons |= 1 << 5;
   }
 
-  GPIO_PinState state = HAL_GPIO_ReadPin(Button1_GPIO_Port, Button1_Pin);
-
-  if (state) {
-    report->buttons |= 1;
-  }
-
-  state = HAL_GPIO_ReadPin(Button2_GPIO_Port, Button2_Pin);
-
-  if (state) {
-    report->buttons |= 1 << 1;
-  }
-
-  state = HAL_GPIO_ReadPin(Button3_GPIO_Port, Button3_Pin);
-
-  if (state) {
-    report->buttons |= 1 << 2;
-  }
-
-  state = HAL_GPIO_ReadPin(Button4_GPIO_Port, Button4_Pin);
-
-  if (state) {
-    report->buttons |= 1 << 3;
-  }
-
   return TRUE;
 }
 
@@ -141,14 +112,9 @@ void process_input(void) {
   JoystickInputReport report;
   JoystickInputReport_Init(&report);
 
-  for (uint16_t i = 0; i < 500; i++) {
-    if (readAnalogAxes(&report)) {
-      break;
-    }
-    HAL_Delay(10);
+  if (readAnalogAxes(&report)) {
+    sendReport(&report);
   }
-
-  sendReport(&report);
 }
 
 uint32_t USB_lastTime = 0;

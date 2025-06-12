@@ -13,8 +13,7 @@ HID_REPORT JoystickInputReport {
   uint16_t accelerator;
   uint16_t brake;
   uint32_t buttons;
-}
-JoystickInputReport;
+} JoystickInputReport;
 
 void JoystickInputReport_Init(JoystickInputReport *report);
 

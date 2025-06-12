@@ -12,8 +12,5 @@
         "cstdint": "c",
         "usbd_customhid_if_template.h": "c"
     },
-    "clangd.arguments": [
-        "--query-driver=/usr/bin/arm-none-eabi-gcc"
-    ],
     "C_Cpp.intelliSenseEngine": "disabled",
 }

@@ -1,6 +1,8 @@
 #include "steering_wheel_driver.h"
 #include "as5600_ll.h"
+#include "stm32f103xb.h"
 #include "stm32f1xx_hal_def.h"
+#include "stm32f1xx_hal_i2c.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -29,17 +31,21 @@ HAL_StatusTypeDef UpdateMagnetStatus(SteeringWheelDriver *drv) {
   return status;
 }
 
-HAL_StatusTypeDef SteeringWheelDriver_Init(SteeringWheelDriver *drv) {
-  HAL_StatusTypeDef status;
-
-  memset(drv, 0, sizeof(SteeringWheelDriver));
-
+HAL_StatusTypeDef ResetSteeringWheelDriver(void) {
   AS5600_InitStruct init_struct = {
       .PositiveRotationDirection = AS5600_DIR_CW,
       .SlowFilter = AS5600_SLOW_FILTER_2X,
   };
 
-  status = AS5600_LL_Init(&init_struct);
+  return AS5600_LL_Init(&init_struct);
+}
+
+HAL_StatusTypeDef SteeringWheelDriver_Init(SteeringWheelDriver *drv) {
+  HAL_StatusTypeDef status;
+
+  memset(drv, 0, sizeof(SteeringWheelDriver));
+
+  status = ResetSteeringWheelDriver();
   if (status != HAL_OK)
     return status;
 
@@ -58,11 +64,30 @@ HAL_StatusTypeDef SteeringWheelDriver_Init(SteeringWheelDriver *drv) {
   return HAL_OK;
 }
 
+void MX_I2C1_Init(void);
+
+extern I2C_HandleTypeDef hi2c1;
+
+void TryRecoverI2C(HAL_StatusTypeDef status) {
+  if(status != HAL_OK) {
+    // I2C1->CR1 &= ~(I2C_CR1_PE); //Reset PE bit on I2C control Register
+    // HAL_Delay(1);
+    // I2C1->CR1 |= I2C_CR1_PE;
+    HAL_StatusTypeDef new_status = ResetSteeringWheelDriver();
+    
+    if(new_status != HAL_OK) {
+      HAL_I2C_DeInit(&hi2c1);
+      MX_I2C1_Init();
+      ResetSteeringWheelDriver();
+    }
+  }
+}
+
 HAL_StatusTypeDef
 SteeringWheelDriver_UpdateWheelPosition(SteeringWheelDriver *drv) {
   HAL_StatusTypeDef status;
-
   status = UpdateMagnetStatus(drv);
+  TryRecoverI2C(status);
   if (status != HAL_OK) {
     return status;
     if (!drv->connected) {
@@ -78,8 +103,10 @@ SteeringWheelDriver_UpdateWheelPosition(SteeringWheelDriver *drv) {
   uint16_t angle_prev = drv->wheel_angle;
 
   status = AS5600_LL_GetRawAngle(&angle);
-  if (status != HAL_OK)
+  TryRecoverI2C(status);
+  if (status != HAL_OK) {
     return status;
+  }
 
   if (angle_prev > REVOLUTION_PREV_MIN && angle < REVOLUTION_NEXT_MAX)
     drv->revolutions++;
@@ -88,7 +115,8 @@ SteeringWheelDriver_UpdateWheelPosition(SteeringWheelDriver *drv) {
     drv->revolutions--;
 
   drv->wheel_angle = angle;
-  drv->wheel_position = drv->revolutions * REVOLUTION_MAX + drv->wheel_angle - 1124;
+  drv->wheel_position =
+      drv->revolutions * REVOLUTION_MAX + drv->wheel_angle + 120;
 
   return HAL_OK;
 }

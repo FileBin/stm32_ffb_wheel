@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-nix-shell --run 'code .'
+mkdir /tmp/code-ffb-wheel
+nix-shell --run 'TMPDIR=/tmp/code-ffb-wheel code .'
